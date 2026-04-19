@@ -1,6 +1,6 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { registerHook } from "./pi-hook.js";
 
 export default function extension(api: ExtensionAPI) {
-	// Token-saver extension entry point
-	void api;
+	registerHook(api);
 }
