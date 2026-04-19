@@ -160,7 +160,7 @@ describe("AC8 — readRecords never throws: missing log and corrupt lines", () =
 	it("handles missing log gracefully", async () => {
 		const { api, invoke, sentMessages } = makeMockApi();
 		registerGainCommand(api as never, SESSION_ID, { logPath: "/tmp/nonexistent-gain-test.jsonl" });
-		await expect(invoke()).resolves.not.toThrow();
+		await invoke();
 		expect(sentMessages).toHaveLength(1);
 	});
 
@@ -172,7 +172,7 @@ describe("AC8 — readRecords never throws: missing log and corrupt lines", () =
 		);
 		const { api, invoke, sentMessages } = makeMockApi();
 		registerGainCommand(api as never, SESSION_ID, { logPath: tmpLog });
-		await expect(invoke()).resolves.not.toThrow();
+		await invoke();
 		const content = (sentMessages[0] as { content: string }).content;
 		expect(content).toContain("800 B"); // valid line still processed
 	});
