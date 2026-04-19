@@ -262,3 +262,20 @@ describe("AC-07 — src/index.ts wires registerHook into the PI entry point", ()
 		expect(mock.api.on).toHaveBeenCalledWith("tool_result", expect.any(Function));
 	});
 });
+
+describe("AC7 — registerHook constructs SavingsTracker subscribed to filter events", () => {
+	it("calls api.events.on with TOKEN_SAVER_FILTERED_EVENT", () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+		expect(mock.api.events.on).toHaveBeenCalledWith(
+			TOKEN_SAVER_FILTERED_EVENT,
+			expect.any(Function),
+		);
+	});
+
+	it("registerHook return value is undefined (void)", () => {
+		const mock = makeMockApi();
+		const result = registerHook(mock.api as unknown as ExtensionAPI);
+		expect(result).toBeUndefined();
+	});
+});
