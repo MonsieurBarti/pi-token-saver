@@ -252,3 +252,13 @@ describe("AC-09 — matchOutput short-circuit: image preserved at tail", () => {
 		expect(result?.content[1]).toEqual(image);
 	});
 });
+
+import extension from "../src/index.js";
+
+describe("AC-07 — src/index.ts wires registerHook into the PI entry point", () => {
+	it("default export calls registerHook by subscribing to tool_result", () => {
+		const mock = makeMockApi();
+		extension(mock.api as unknown as ExtensionAPI);
+		expect(mock.api.on).toHaveBeenCalledWith("tool_result", expect.any(Function));
+	});
+});
