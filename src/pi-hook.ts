@@ -4,6 +4,7 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { createRegistry } from "./command-registry/index.js";
 import { FilterEngine } from "./filter-engine/index.js";
 import { registerGainCommand } from "./gain-command/index.js";
+import { createPassthroughFlag, registerPassthroughCommand } from "./passthrough-mode/index.js";
 import { SavingsTracker } from "./savings-tracker/index.js";
 
 export const TOKEN_SAVER_FILTERED_EVENT = "token-saver:filtered";
@@ -20,6 +21,8 @@ export function registerHook(api: ExtensionAPI): void {
 	const sessionId = Date.now();
 	new SavingsTracker(api.events, sessionId);
 	registerGainCommand(api, sessionId);
+	const passthroughFlag = createPassthroughFlag();
+	registerPassthroughCommand(api, passthroughFlag);
 
 	api.on("tool_result", (event, _ctx) => {
 		if (!isBashToolResult(event)) return;
@@ -35,6 +38,11 @@ export function registerHook(api: ExtensionAPI): void {
 			else otherContent.push(c);
 		}
 		if (textParts.length === 0) return;
+
+		if (passthroughFlag.active) {
+			passthroughFlag.active = false;
+			return;
+		}
 
 		const result = engine.process(command, textParts.join("\n"));
 		if (!result.matched) return;

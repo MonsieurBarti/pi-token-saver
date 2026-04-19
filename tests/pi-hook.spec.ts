@@ -18,6 +18,7 @@ const makeMockApi = () => {
 			on: vi.fn(),
 		},
 		registerCommand: vi.fn(),
+		sendMessage: vi.fn(),
 	};
 	return {
 		api,
@@ -289,5 +290,61 @@ describe("AC7 — registerHook constructs SavingsTracker subscribed to filter ev
 		const mock = makeMockApi();
 		const result = registerHook(mock.api as unknown as ExtensionAPI);
 		expect(result).toBeUndefined();
+	});
+});
+
+describe("AC-wiring — registerHook wires /token-saver:passthrough command", () => {
+	it("calls api.registerCommand with 'token-saver:passthrough'", () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+		expect(mock.api.registerCommand).toHaveBeenCalledWith(
+			"token-saver:passthrough",
+			expect.objectContaining({ handler: expect.any(Function) }),
+		);
+	});
+});
+
+describe("AC-bypass — passthrough flag bypasses filtering for the next matched command", () => {
+	const makeMatchedEvent = () => ({
+		type: "tool_result",
+		toolCallId: "tc-bypass",
+		toolName: "bash",
+		input: { command: "git log --oneline" },
+		content: [{ type: "text", text: GIT_LOG_VERBOSE }],
+		isError: false,
+		details: undefined,
+	});
+
+	const armPassthrough = async (mock: ReturnType<typeof makeMockApi>) => {
+		const call = (mock.api.registerCommand as ReturnType<typeof vi.fn>).mock.calls.find(
+			(args: string[]) => args[0] === "token-saver:passthrough",
+		);
+		await call?.[1].handler("", {});
+	};
+
+	it("returns undefined (no replacement) when flag is armed and command would match", async () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+		await armPassthrough(mock);
+		const result = mock.invoke(makeMatchedEvent());
+		expect(result).toBeUndefined();
+	});
+
+	it("emits no savings event when bypassed", async () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+		await armPassthrough(mock);
+		mock.invoke(makeMatchedEvent());
+		expect(mock.emitted).toHaveLength(0);
+	});
+
+	it("resumes filtering after one bypassed command", async () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+		await armPassthrough(mock);
+		mock.invoke(makeMatchedEvent()); // first: bypassed
+		const result = mock.invoke(makeMatchedEvent()); // second: filtered
+		expect(result).toBeDefined();
+		expect(mock.emitted).toHaveLength(1);
 	});
 });
