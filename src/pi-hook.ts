@@ -8,6 +8,13 @@ import { createPassthroughFlag, registerPassthroughCommand } from "./passthrough
 import { SavingsTracker } from "./savings-tracker/index.js";
 
 export const TOKEN_SAVER_FILTERED_EVENT = "token-saver:filtered";
+export const TOKEN_SAVER_UNMATCHED_EVENT = "token-saver:unmatched";
+
+export interface UnmatchedEvent {
+	command: string;
+	byteCount: number;
+	timestamp: number;
+}
 
 export interface FilterRecord {
 	command: string;
