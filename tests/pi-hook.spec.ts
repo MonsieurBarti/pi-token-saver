@@ -17,6 +17,7 @@ const makeMockApi = () => {
 			}),
 			on: vi.fn(),
 		},
+		registerCommand: vi.fn(),
 	};
 	return {
 		api,
@@ -250,6 +251,17 @@ describe("AC-09 — matchOutput short-circuit: image preserved at tail", () => {
 		expect(result?.content).toHaveLength(2);
 		expect(result?.content[0]).toEqual({ type: "text", text: "All tests passed." });
 		expect(result?.content[1]).toEqual(image);
+	});
+});
+
+describe("AC-wiring — registerHook wires /token-saver:gain command", () => {
+	it("calls api.registerCommand with 'token-saver:gain'", () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+		expect(mock.api.registerCommand).toHaveBeenCalledWith(
+			"token-saver:gain",
+			expect.objectContaining({ handler: expect.any(Function) }),
+		);
 	});
 });
 
