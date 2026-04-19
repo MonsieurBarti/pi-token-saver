@@ -1,0 +1,15 @@
+./src
+./src/auth
+./src/auth/middleware.ts
+./src/auth/types.ts
+find: ./private: Permission denied
+./src/filter-engine
+./src/filter-engine/index.ts
+./src/command-registry
+find: /var/log: Permission denied
+./tests
+./tests/filter-engine
+./tests/filter-engine/filter-engine.spec.ts
+find: ./node_modules/.cache/private: Operation not permitted
+./package.json
+./tsconfig.json
