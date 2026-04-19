@@ -17,7 +17,6 @@ const tmpLog = join(tmpdir(), `unmatched-test-${process.pid}.jsonl`);
 const makeRecord = (overrides: Partial<UnmatchedRecord> = {}): UnmatchedRecord => ({
 	sessionId: 1,
 	timestamp: 1000,
-	command: "echo hello",
 	commandKey: "echo hello",
 	projectCwd: "/tmp/test",
 	byteCount: 100,
@@ -59,7 +58,7 @@ describe("pruneUnmatchedIfNeeded", () => {
 	});
 
 	it("prunes to 90% when at or over cap", () => {
-		for (let i = 0; i < 10; i++) appendUnmatched(makeRecord({ command: `cmd ${i}` }), tmpLog);
+		for (let i = 0; i < 10; i++) appendUnmatched(makeRecord({ commandKey: `cmd ${i}` }), tmpLog);
 		pruneUnmatchedIfNeeded(10, tmpLog);
 		expect(readUnmatched(tmpLog)).toHaveLength(9);
 	});

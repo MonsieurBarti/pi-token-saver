@@ -5,7 +5,6 @@ import { dirname, join } from "node:path";
 export interface UnmatchedRecord {
 	sessionId: number;
 	timestamp: number;
-	command: string;
 	commandKey: string;
 	projectCwd: string;
 	byteCount: number;

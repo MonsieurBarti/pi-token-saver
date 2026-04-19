@@ -36,7 +36,6 @@ export class DiscoverTracker {
 				{
 					sessionId: this.sessionId,
 					timestamp: event.timestamp,
-					command: event.command,
 					commandKey,
 					projectCwd: this.projectCwd,
 					byteCount: event.byteCount,
