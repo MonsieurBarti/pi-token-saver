@@ -1,0 +1,7 @@
+✓ src/auth/login.test.ts
+  ✓ should login with valid credentials [12ms]
+  ✓ should reject invalid password [3ms]
+✓ src/auth/middleware.test.ts
+  ✓ should attach user to request [5ms]
+
+5 tests passed [45ms]

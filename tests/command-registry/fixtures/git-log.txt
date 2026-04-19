@@ -1,0 +1,49 @@
+commit a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2
+Author: Alice Smith <alice@example.com>
+Date:   Mon Apr 15 14:32:01 2024 +0200
+
+    feat: add authentication middleware
+
+ src/auth/middleware.ts    | 85 ++++++++++++++++++++++++++++++++++++++++++++++
+ src/auth/types.ts         | 12 +++++++++
+ 2 files changed, 97 insertions(+)
+
+commit b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3
+Author: Bob Jones <bob@example.com>
+Date:   Sun Apr 14 09:15:33 2024 +0200
+
+    fix: resolve token expiry race condition
+
+ src/auth/token.ts         | 24 ++++++++++++-----------
+ src/auth/session.ts       |  8 +++----
+ 2 files changed, 17 insertions(+), 15 deletions(-)
+
+commit c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
+Author: Carol White <carol@example.com>
+Date:   Sat Apr 13 16:44:12 2024 +0200
+
+    chore: update dependencies
+
+ package.json              |  6 +++---
+ bun.lock                  | 142 ++++++++++++++++++++++++++++++++++++-----------
+ 2 files changed, 108 insertions(+), 40 deletions(-)
+
+commit d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5
+Author: Dave Black <dave@example.com>
+Date:   Fri Apr 12 11:22:05 2024 +0200
+
+    docs: add API documentation
+
+ README.md                 | 220 ++++++++++++++++++++++++++++++++++++++++++++++
+ docs/api.md               |  95 ++++++++++++++++++++
+ 2 files changed, 315 insertions(+)
+
+commit e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6
+Author: Eve Green <eve@example.com>
+Date:   Thu Apr 11 08:10:44 2024 +0200
+
+    refactor: extract token validator
+
+ src/auth/validator.ts     | 55 +++++++++++++++++++++++++++++++++++++++++++++
+ src/auth/middleware.ts    | 32 +++------------------------
+ 2 files changed, 58 insertions(+), 29 deletions(-)

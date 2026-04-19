@@ -1,0 +1,9 @@
+src/auth/middleware.ts(10,5): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+  Argument of type 'string' is not assignable to parameter of type 'number'.
+src/auth/config.ts(5,3): note: The expected type comes from property 'timeout' declared here on type 'RequestConfig'.
+src/auth/types.ts(25,3): error TS2551: Property 'expirySeconds' does not exist on type 'AuthConfig'. Did you mean 'expiry'?
+src/auth/types.ts(22,3): note: Property 'expiry' does exist on type 'AuthConfig'.
+
+src/auth/token.ts(42,9): warning TS6133: 'refreshed' is declared but its value is never read.
+
+Found 2 errors in 2 files.

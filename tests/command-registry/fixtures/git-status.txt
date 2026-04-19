@@ -1,0 +1,14 @@
+On branch feat/my-feature
+Your branch is up to date with 'origin/feat/my-feature'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   src/auth/middleware.ts
+	modified:   src/auth/types.ts
+
+Untracked files:
+  (use "git add" to track)
+	src/utils/helpers.ts
+
+no changes added to commit

@@ -1,0 +1,16 @@
+• Packages in scope: app, docs, utils
+• Running build in 3 packages
+app:build: cache miss, executing 9af3b21d...
+app:build: > tsc --build
+app:build: src/index.ts(10,5): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+app:build: error: build failed with exit code 2
+docs:build: cache hit, replaying output 2c4d5e6f...
+docs:build: > next build
+docs:build: ✓ Generating static pages (3/3)
+docs:build: ✓ Finalizing page optimization
+utils:build: cache hit, replaying output 7f8e9d0a...
+utils:build: > tsc --build
+utils:build: ✓ Compiled successfully
+ Tasks:    1 failed, 2 successful, 3 total
+ Cached:   2 cached, 3 total
+  Time:    4.2s

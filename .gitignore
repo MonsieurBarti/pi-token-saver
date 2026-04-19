@@ -39,5 +39,5 @@ yarn-error.log*
 docs/superpowers/
 docs/plans/
 .hippo/
-.tff-cc/
+/.tff-cc
 build/

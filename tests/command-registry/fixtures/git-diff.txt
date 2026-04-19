@@ -1,0 +1,298 @@
+diff --git a/src/auth/middleware.ts b/src/auth/middleware.ts
+index abc1234..def5678 100644
+--- a/src/auth/middleware.ts
++++ b/src/auth/middleware.ts
+@@ -10,7 +10,13 @@ export class AuthMiddleware {
+   constructor(private readonly config: AuthConfig) {}
+
+   async handle(req: Request): Promise<Response> {
++    if (!req.headers.get('authorization')) {
++      return new Response('Unauthorized', { status: 401 });
++    }
++
+     const token = req.headers.get('authorization')?.split(' ')[1];
+-    if (!token) return null;
++    if (!token) return new Response('Unauthorized', { status: 401 });
+     return this.validateToken(token);
+   }
+ }
+diff --git a/src/auth/types.ts b/src/auth/types.ts
+index 000000..abc123 100644
+--- /dev/null
++++ b/src/auth/types.ts
+@@ -0,0 +1,12 @@
++export interface AuthConfig {
++  secret: string;
++  expirySeconds: number;
++  issuer: string;
++}
++
++export interface TokenPayload {
++  sub: string;
++  exp: number;
++  iat: number;
++}
+diff --git a/src/auth/token.ts b/src/auth/token.ts
+index 111111..222222 100644
+--- a/src/auth/token.ts
++++ b/src/auth/token.ts
+@@ -1,20 +1,35 @@
+ import { SignJWT, jwtVerify } from 'jose';
+ import type { AuthConfig, TokenPayload } from './types.js';
+
+-export async function createToken(sub: string, config: AuthConfig): Promise<string> {
+-  return new SignJWT({ sub })
++export async function createToken(
++  sub: string,
++  config: AuthConfig,
++  extra?: Record<string, unknown>,
++): Promise<string> {
++  const payload = { sub, ...extra };
++  return new SignJWT(payload)
+     .setProtectedHeader({ alg: 'HS256' })
+     .setIssuedAt()
+     .setIssuer(config.issuer)
+     .setExpirationTime(`${config.expirySeconds}s`)
+     .sign(new TextEncoder().encode(config.secret));
+ }
+
+-export async function verifyToken(token: string, config: AuthConfig): Promise<TokenPayload> {
++export async function verifyToken(
++  token: string,
++  config: AuthConfig,
++): Promise<TokenPayload> {
+   const { payload } = await jwtVerify(token, new TextEncoder().encode(config.secret), {
+     issuer: config.issuer,
+   });
+-  return payload as TokenPayload;
++  return payload as unknown as TokenPayload;
++}
++
++export async function refreshToken(
++  token: string,
++  config: AuthConfig,
++): Promise<string> {
++  const payload = await verifyToken(token, config);
++  return createToken(payload.sub, config);
+ }
+diff --git a/src/auth/validator.ts b/src/auth/validator.ts
+index 333333..444444 100644
+--- a/src/auth/validator.ts
++++ b/src/auth/validator.ts
+@@ -0,0 +1,28 @@
++import type { AuthConfig } from './types.js';
++import { verifyToken } from './token.js';
++
++export interface ValidationResult {
++  valid: boolean;
++  sub?: string;
++  error?: string;
++}
++
++export async function validateRequest(
++  authHeader: string | null,
++  config: AuthConfig,
++): Promise<ValidationResult> {
++  if (!authHeader) {
++    return { valid: false, error: 'Missing Authorization header' };
++  }
++
++  const [scheme, token] = authHeader.split(' ');
++  if (scheme !== 'Bearer' || !token) {
++    return { valid: false, error: 'Invalid Authorization scheme' };
++  }
++
++  try {
++    const payload = await verifyToken(token, config);
++    return { valid: true, sub: payload.sub };
++  } catch {
++    return { valid: false, error: 'Invalid or expired token' };
++  }
++}
+diff --git a/src/auth/session.ts b/src/auth/session.ts
+index 555555..666666 100644
+--- /dev/null
++++ b/src/auth/session.ts
+@@ -0,0 +1,40 @@
++import type { AuthConfig } from './types.js';
++import { createToken, verifyToken } from './token.js';
++
++export interface Session {
++  sub: string;
++  token: string;
++  expiresAt: Date;
++}
++
++const sessions = new Map<string, Session>();
++
++export async function createSession(
++  sub: string,
++  config: AuthConfig,
++): Promise<Session> {
++  const token = await createToken(sub, config);
++  const expiresAt = new Date(Date.now() + config.expirySeconds * 1000);
++  const session: Session = { sub, token, expiresAt };
++  sessions.set(token, session);
++  return session;
++}
++
++export function getSession(token: string): Session | undefined {
++  return sessions.get(token);
++}
++
++export function destroySession(token: string): boolean {
++  return sessions.delete(token);
++}
++
++export async function refreshSession(
++  token: string,
++  config: AuthConfig,
++): Promise<Session | undefined> {
++  const existing = sessions.get(token);
++  if (!existing) return undefined;
++  sessions.delete(token);
++  return createSession(existing.sub, config);
++}
+diff --git a/src/auth/cache.ts b/src/auth/cache.ts
+index 777777..888888 100644
+--- /dev/null
++++ b/src/auth/cache.ts
+@@ -0,0 +1,45 @@
++import type { TokenPayload } from './types.js';
++
++interface CacheEntry {
++  payload: TokenPayload;
++  cachedAt: number;
++  ttl: number;
++}
++
++export class TokenCache {
++  private readonly cache = new Map<string, CacheEntry>();
++  private readonly defaultTtl: number;
++
++  constructor(defaultTtl = 300_000) {
++    this.defaultTtl = defaultTtl;
++  }
++
++  set(token: string, payload: TokenPayload, ttl?: number): void {
++    this.cache.set(token, {
++      payload,
++      cachedAt: Date.now(),
++      ttl: ttl ?? this.defaultTtl,
++    });
++  }
++
++  get(token: string): TokenPayload | undefined {
++    const entry = this.cache.get(token);
++    if (!entry) return undefined;
++    if (Date.now() - entry.cachedAt > entry.ttl) {
++      this.cache.delete(token);
++      return undefined;
++    }
++    return entry.payload;
++  }
++
++  delete(token: string): boolean {
++    return this.cache.delete(token);
++  }
++
++  clear(): void {
++    this.cache.clear();
++  }
++
++  get size(): number {
++    return this.cache.size;
++  }
++}
+diff --git a/src/auth/middleware.test.ts b/src/auth/middleware.test.ts
+index 999999..aaaaaaa 100644
+--- /dev/null
++++ b/src/auth/middleware.test.ts
+@@ -0,0 +1,55 @@
++import { describe, it, expect, beforeAll } from 'vitest';
++import { AuthMiddleware } from './middleware.js';
++import { createToken } from './token.js';
++import type { AuthConfig } from './types.js';
++
++const config: AuthConfig = {
++  secret: 'test-secret-key-for-testing-only',
++  expirySeconds: 3600,
++  issuer: 'test-issuer',
++};
++
++describe('AuthMiddleware', () => {
++  let validToken: string;
++
++  beforeAll(async () => {
++    validToken = await createToken('user-123', config);
++  });
++
++  it('returns 401 when Authorization header is missing', async () => {
++    const middleware = new AuthMiddleware(config);
++    const req = new Request('http://localhost/api/test');
++    const res = await middleware.handle(req);
++    expect(res.status).toBe(401);
++  });
++
++  it('returns 401 when token is invalid', async () => {
++    const middleware = new AuthMiddleware(config);
++    const req = new Request('http://localhost/api/test', {
++      headers: { Authorization: 'Bearer invalid-token' },
++    });
++    const res = await middleware.handle(req);
++    expect(res.status).toBe(401);
++  });
++
++  it('returns 200 when token is valid', async () => {
++    const middleware = new AuthMiddleware(config);
++    const req = new Request('http://localhost/api/test', {
++      headers: { Authorization: `Bearer ${validToken}` },
++    });
++    const res = await middleware.handle(req);
++    expect(res.status).toBe(200);
++  });
++
++  it('returns 401 when Bearer scheme is missing', async () => {
++    const middleware = new AuthMiddleware(config);
++    const req = new Request('http://localhost/api/test', {
++      headers: { Authorization: `Token ${validToken}` },
++    });
++    const res = await middleware.handle(req);
++    expect(res.status).toBe(401);
++  });
++});
+diff --git a/src/auth/token.test.ts b/src/auth/token.test.ts
+index bbbbbbb..ccccccc 100644
+--- /dev/null
++++ b/src/auth/token.test.ts
+@@ -0,0 +1,42 @@
++import { describe, it, expect } from 'vitest';
++import { createToken, verifyToken, refreshToken } from './token.js';
++import type { AuthConfig } from './types.js';
++
++const config: AuthConfig = {
++  secret: 'test-secret-key-for-testing-only',
++  expirySeconds: 3600,
++  issuer: 'test-issuer',
++};
++
++describe('token utilities', () => {
++  it('creates and verifies a valid token', async () => {
++    const token = await createToken('user-123', config);
++    const payload = await verifyToken(token, config);
++    expect(payload.sub).toBe('user-123');
++  });
++
++  it('rejects a tampered token', async () => {
++    const token = await createToken('user-123', config);
++    const tampered = token.slice(0, -5) + 'AAAAA';
++    await expect(verifyToken(tampered, config)).rejects.toThrow();
++  });
++
++  it('creates a refreshed token with the same sub', async () => {
++    const original = await createToken('user-456', config);
++    const refreshed = await refreshToken(original, config);
++    const payload = await verifyToken(refreshed, config);
++    expect(payload.sub).toBe('user-456');
++  });
++});

@@ -1,0 +1,15 @@
+npm warn deprecated request@2.88.2: request has been deprecated, see https://github.com/request/request/issues/3142
+npm warn deprecated har-validator@5.1.5: this library is no longer supported
+npm warn deprecated uuid@3.4.0: Please upgrade  to version 7 or higher
+Resolving 1247 packages...
+Installing packages: 1/1247
+Installing packages: 100/1247
+Installing packages: 500/1247
+Installing packages: 1000/1247
+Installing packages: 1247/1247
+npm error code E404
+npm error 404 Not Found - GET https://registry.npmjs.org/some-missing-pkg
+added 1247 packages, and audited 1248 packages in 45s
+178 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities

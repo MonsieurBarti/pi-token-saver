@@ -1,0 +1,19 @@
+✓ src/auth/login.spec.ts (3 tests) 12ms
+✓ src/auth/validator.spec.ts (5 tests) 18ms
+✓ src/auth/session.spec.ts (4 tests) 9ms
+✓ src/utils/helpers.spec.ts (7 tests) 22ms
+✓ src/utils/validators.spec.ts (3 tests) 14ms
+✗ src/auth/token.spec.ts (2 tests | 1 failed) 28ms
+  × token > should refresh expired token
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/auth/token.spec.ts > token > should refresh expired token
+AssertionError: expected 'expired' to equal 'valid'
+  - Expected: "valid"
+  + Received: "expired"
+    at src/auth/token.spec.ts:42:5
+
+Test Files  1 failed | 5 passed (6)
+Tests       1 failed | 17 passed (18)
+Duration    128ms

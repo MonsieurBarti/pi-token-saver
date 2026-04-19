@@ -295,3 +295,27 @@ describe("Edge cases — onEmpty, stage 6/7 boundaries, replace semantics", () =
 		expect(result.output).toBe("…\n…");
 	});
 });
+
+describe("NFR-03 — filtering overhead < 5ms per invocation", () => {
+	it("processes 50 KB of output in under 5ms", () => {
+		const registry = new FilterRegistry([
+			{
+				name: "heavy",
+				matchCommand: /heavy/,
+				pipeline: {
+					stripAnsi: true,
+					stripLinesMatching: [/^\s*$/],
+					maxLines: 200,
+				},
+			},
+		]);
+		const engine = new FilterEngine(registry);
+		// ~50 KB: 1000 lines of ~50 chars each
+		const line = `${"x".repeat(48)}\n`;
+		const content = line.repeat(1000);
+		const start = performance.now();
+		engine.process("heavy build", content);
+		const elapsed = performance.now() - start;
+		expect(elapsed).toBeLessThan(5);
+	});
+});
