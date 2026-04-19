@@ -8,14 +8,14 @@
   </p>
 
   <p>
-    <a href="https://github.com/MonsieurBarti/token-saver-pi/actions/workflows/ci.yml">
-      <img src="https://img.shields.io/github/actions/workflow/status/MonsieurBarti/token-saver-pi/ci.yml?label=CI&style=flat-square" alt="CI Status">
+    <a href="https://github.com/MonsieurBarti/pi-token-saver/actions/workflows/ci.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/MonsieurBarti/pi-token-saver/ci.yml?label=CI&style=flat-square" alt="CI Status">
     </a>
     <a href="https://www.npmjs.com/package/@the-forge-flow/pi-token-saver">
       <img src="https://img.shields.io/npm/v/@the-forge-flow/pi-token-saver?style=flat-square" alt="npm version">
     </a>
     <a href="LICENSE">
-      <img src="https://img.shields.io/github/license/MonsieurBarti/token-saver-pi?style=flat-square" alt="License">
+      <img src="https://img.shields.io/github/license/MonsieurBarti/pi-token-saver?style=flat-square" alt="License">
     </a>
   </p>
 </div>
@@ -55,7 +55,7 @@ pi install npm:@the-forge-flow/pi-token-saver
 **From GitHub:**
 
 ```bash
-pi install git:github.com/MonsieurBarti/token-saver-pi
+pi install git:github.com/MonsieurBarti/pi-token-saver
 ```
 
 Then reload PI with `/reload`.
