@@ -1,0 +1,7 @@
+✓ src/auth/login.spec.ts (3 tests) 12ms
+✓ src/auth/middleware.spec.ts (5 tests) 45ms
+✓ src/auth/token.spec.ts (2 tests) 8ms
+
+Test Files  3 passed (3)
+Tests       10 passed (10)
+Duration    65ms
