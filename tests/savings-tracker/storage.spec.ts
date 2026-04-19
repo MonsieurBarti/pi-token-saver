@@ -6,6 +6,7 @@ import {
 	type SavingsRecord,
 	_resetWarnedForTest,
 	appendRecord,
+	pruneIfNeeded,
 	readRecords,
 } from "../../src/savings-tracker/storage.js";
 
@@ -93,5 +94,29 @@ describe("AC6 — readRecords returns records in file order, skips malformed lin
 
 	it("returns empty array when file does not exist", () => {
 		expect(readRecords("/nonexistent/path.jsonl")).toEqual([]);
+	});
+});
+
+describe("AC4 — pruneIfNeeded trims log to 90% of cap before first append", () => {
+	it("no-ops when file does not exist", () => {
+		expect(() => pruneIfNeeded(10, "/nonexistent/path.jsonl")).not.toThrow();
+	});
+
+	it("no-ops when record count < cap", () => {
+		appendRecord(makeRecord(), tmpLog);
+		appendRecord(makeRecord(), tmpLog);
+		pruneIfNeeded(10, tmpLog);
+		expect(readRecords(tmpLog)).toHaveLength(2);
+	});
+
+	it("prunes to floor(cap * 0.9) lines when count >= cap", () => {
+		const cap = 10;
+		for (let i = 0; i < cap; i++) {
+			appendRecord(makeRecord({ command: `cmd-${i}` }), tmpLog);
+		}
+		pruneIfNeeded(cap, tmpLog);
+		const after = readRecords(tmpLog);
+		expect(after).toHaveLength(Math.floor(cap * 0.9)); // 9
+		expect(after[after.length - 1]?.command).toBe("cmd-9");
 	});
 });

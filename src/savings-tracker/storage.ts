@@ -1,4 +1,4 @@
-import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -50,4 +50,25 @@ export function readRecords(logPath: string = DEFAULT_LOG_PATH): SavingsRecord[]
 				return [];
 			}
 		});
+}
+
+export function pruneIfNeeded(cap: number, logPath: string = DEFAULT_LOG_PATH): void {
+	let content: string;
+	try {
+		content = readFileSync(logPath, "utf8");
+	} catch {
+		return;
+	}
+	const lines = content.split("\n").filter((line) => line.trim().length > 0);
+	if (lines.length < cap) return;
+	const keep = Math.floor(cap * 0.9);
+	const kept = lines.slice(lines.length - keep);
+	try {
+		writeFileSync(logPath, `${kept.join("\n")}\n`, "utf8");
+	} catch (err) {
+		if (!warned) {
+			warned = true;
+			process.stderr.write(`[token-saver] savings prune failed: ${String(err)}\n`);
+		}
+	}
 }
