@@ -1,6 +1,11 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { describe, expect, it, vi } from "vitest";
-import { type FilterRecord, TOKEN_SAVER_FILTERED_EVENT, registerHook } from "../src/pi-hook.js";
+import {
+	type FilterRecord,
+	TOKEN_SAVER_FILTERED_EVENT,
+	TOKEN_SAVER_UNMATCHED_EVENT,
+	registerHook,
+} from "../src/pi-hook.js";
 
 // ── Mock factory ─────────────────────────────────────────────────────────────
 
@@ -79,8 +84,8 @@ describe("AC-01 — matched bash command: filtered content + FilterRecord emitte
 	});
 });
 
-describe("AC-02 — no matching rule: undefined + no event", () => {
-	it("returns undefined and emits nothing when no rule matches", () => {
+describe("AC-02 — no matching rule: undefined + unmatched event emitted", () => {
+	it("returns undefined and emits unmatched event when no rule matches", () => {
 		const mock = makeMockApi();
 		registerHook(mock.api as unknown as ExtensionAPI);
 
@@ -95,7 +100,8 @@ describe("AC-02 — no matching rule: undefined + no event", () => {
 		});
 
 		expect(result).toBeUndefined();
-		expect(mock.emitted).toHaveLength(0);
+		expect(mock.emitted).toHaveLength(1);
+		expect(mock.emitted[0]?.event).toBe(TOKEN_SAVER_UNMATCHED_EVENT);
 	});
 });
 
