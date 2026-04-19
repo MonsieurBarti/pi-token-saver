@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/MonsieurBarti/pi-token-saver/compare/pi-token-saver-v0.1.1...pi-token-saver-v0.1.2) (2026-04-19)
+
+
+### Bug Fixes
+
+* correct github repo links in badges ([e36ef23](https://github.com/MonsieurBarti/pi-token-saver/commit/e36ef231b139f99fb3639d0a7b84cb7f6aeafc21))
+
 ## [0.1.1](https://github.com/MonsieurBarti/pi-token-saver/compare/pi-token-saver-v0.1.0...pi-token-saver-v0.1.1) (2026-04-19)
 
 
