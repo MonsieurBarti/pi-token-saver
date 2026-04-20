@@ -76,6 +76,14 @@ describe("rust rules", () => {
 			expect(result.output).not.toBe("All tests passed.");
 			expect(result.output).toContain("FAILED");
 		});
+
+		it("caps at 150 lines on large failure output", () => {
+			const fixture = readFileSync(join(fixturesDir, "cargo-test-large.txt"), "utf-8");
+			const result = engine.process("cargo test", fixture);
+			const lines = result.output.split("\n").filter((l) => l !== "");
+			expect(lines.length).toBeLessThanOrEqual(151);
+			expect(result.output).toContain("lines truncated");
+		});
 	});
 
 	describe("negative matching", () => {

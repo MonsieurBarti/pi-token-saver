@@ -26,6 +26,14 @@ describe("go rules", () => {
 			expect(result.output).toContain("# example.com/foo");
 			expect(result.output).toContain("./main.go:5:2: undefined");
 		});
+
+		it("caps at 100 lines on large error output", () => {
+			const fixture = readFileSync(join(fixturesDir, "go-build-large.txt"), "utf-8");
+			const result = engine.process("go build", fixture);
+			const lines = result.output.split("\n").filter((l) => l !== "");
+			expect(lines.length).toBeLessThanOrEqual(101);
+			expect(result.output).toContain("lines truncated");
+		});
 	});
 
 	describe("go-test", () => {

@@ -67,6 +67,29 @@ describe("python rules", () => {
 			expect(result.output).toBe("Install succeeded.");
 		});
 
+		it("does not collapse when ERROR appears alongside Successfully installed (unless guard)", () => {
+			const fixture = readFileSync(join(fixturesDir, "pip-install-mixed.txt"), "utf-8");
+			const result = engine.process("pip install foo", fixture);
+			expect(result.output).not.toBe("Install succeeded.");
+			expect(result.output).toContain("ERROR: Cannot install");
+		});
+
+		it("filters out progress bars and download URLs via keep-only", () => {
+			const input = [
+				"Collecting foo",
+				"  Downloading foo-1.0.tar.gz (42 kB)",
+				"     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.0/42.0 kB 3.2 MB/s",
+				"  Downloading from https://files.pythonhosted.org/packages/ab/cd/foo-1.0.tar.gz",
+				"Installing collected packages: foo",
+			].join("\n");
+			const result = engine.process("pip install foo", input);
+			expect(result.output).not.toContain("Collecting foo");
+			expect(result.output).not.toContain("Downloading");
+			expect(result.output).not.toContain("━");
+			expect(result.output).not.toContain("pythonhosted");
+			expect(result.output).toContain("Installing collected packages");
+		});
+
 		it("caps at 100 lines on large output", () => {
 			const fixture = readFileSync(join(fixturesDir, "python-install-large.txt"), "utf-8");
 			const result = engine.process("pip install foo", fixture);

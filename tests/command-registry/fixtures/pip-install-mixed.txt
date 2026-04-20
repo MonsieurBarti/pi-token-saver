@@ -1,0 +1,5 @@
+Collecting foo
+  Downloading foo-1.0-py3-none-any.whl (10 kB)
+Installing collected packages: foo
+Successfully installed foo-1.0
+ERROR: Cannot install foo: conflict with bar
