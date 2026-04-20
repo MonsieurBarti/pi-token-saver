@@ -1,5 +1,8 @@
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
 	type FilterRecord,
 	IMAGE_ONLY_FALLBACK,
@@ -423,5 +426,60 @@ describe("AC-bypass — passthrough flag bypasses filtering for the next matched
 		const result = mock.invoke(makeMatchedEvent()); // second: filtered
 		expect(result).toBeDefined();
 		expect(mock.emitted).toHaveLength(1);
+	});
+});
+
+describe("AC13 — user config rule filters hook output end-to-end", () => {
+	const createdDirs: string[] = [];
+	const originalHome = process.env.HOME;
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+		process.env.HOME = originalHome;
+		for (const dir of createdDirs.splice(0)) {
+			fs.rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	it("applies a user-defined rule from a temp project config to tool_result output", () => {
+		const tmpProjectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "pi-hook-cfg-"));
+		const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "pi-hook-home-"));
+		createdDirs.push(tmpProjectRoot, tmpHome);
+
+		const settingsDir = path.join(tmpProjectRoot, ".pi", "token-saver");
+		fs.mkdirSync(settingsDir, { recursive: true });
+		const userRule = {
+			rules: [
+				{
+					name: "user-ac13",
+					matchCommand: "^echo ac13-marker",
+					pipeline: { maxLines: 1 },
+				},
+			],
+		};
+		fs.writeFileSync(path.join(settingsDir, "settings.json"), JSON.stringify(userRule), "utf8");
+
+		vi.spyOn(process, "cwd").mockReturnValue(tmpProjectRoot);
+		process.env.HOME = tmpHome;
+
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+
+		const result = mock.invoke({
+			type: "tool_result",
+			toolCallId: "tc-ac13",
+			toolName: "bash",
+			input: { command: "echo ac13-marker" },
+			content: [{ type: "text", text: "line1\nline2\nline3\nline4" }],
+			isError: false,
+			details: undefined,
+		}) as { content: Array<{ type: string; text: string }> } | undefined;
+
+		expect(result).toBeDefined();
+		const textOut = result?.content[0]?.text ?? "";
+		expect(textOut).toContain("line1");
+		expect(textOut).not.toContain("line4");
+		expect(mock.emitted).toHaveLength(1);
+		expect(mock.emitted[0]?.event).toBe(TOKEN_SAVER_FILTERED_EVENT);
 	});
 });
