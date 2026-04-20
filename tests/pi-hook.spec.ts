@@ -2,6 +2,7 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { describe, expect, it, vi } from "vitest";
 import {
 	type FilterRecord,
+	IMAGE_ONLY_FALLBACK,
 	TOKEN_SAVER_FILTERED_EVENT,
 	TOKEN_SAVER_UNMATCHED_EVENT,
 	registerHook,
@@ -55,6 +56,13 @@ const VITEST_ALL_PASS = [
 	"Tests       10 passed (10)",
 	"Duration    65ms",
 ].join("\n");
+
+const armPassthrough = async (mock: ReturnType<typeof makeMockApi>) => {
+	const call = (mock.api.registerCommand as ReturnType<typeof vi.fn>).mock.calls.find(
+		(args: string[]) => args[0] === "token-saver:passthrough",
+	);
+	await call?.[1].handler("", {});
+};
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -213,24 +221,94 @@ describe("AC-06 — non-string command: undefined", () => {
 	});
 });
 
-describe("AC-08 — zero text items: undefined + no event", () => {
-	it("returns undefined when content has no text items", () => {
+describe("AC-08 — image-only fallback", () => {
+	const image = {
+		type: "image",
+		source: { type: "base64", media_type: "image/png", data: "abc" },
+	};
+
+	it("matched command with custom fallback → fallback text + image, no event", () => {
 		const mock = makeMockApi();
 		registerHook(mock.api as unknown as ExtensionAPI);
-
 		const result = mock.invoke({
 			type: "tool_result",
 			toolCallId: "tc-1",
 			toolName: "bash",
 			input: { command: "git log --oneline" },
-			content: [
-				{ type: "image", source: { type: "base64", media_type: "image/png", data: "abc" } },
-			],
+			content: [image],
+			isError: false,
+			details: undefined,
+		}) as { content: unknown[] } | undefined;
+		expect(result?.content).toHaveLength(2);
+		expect(result?.content[0]).toMatchObject({
+			type: "text",
+			text: expect.stringContaining("--no-pager"),
+		});
+		expect(result?.content[1]).toEqual(image);
+		expect(mock.emitted).toHaveLength(0);
+	});
+
+	it("matched command without custom fallback → generic fallback text + image, no event", () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+		const result = mock.invoke({
+			type: "tool_result",
+			toolCallId: "tc-1",
+			toolName: "bash",
+			input: { command: "git diff HEAD" },
+			content: [image],
+			isError: false,
+			details: undefined,
+		}) as { content: unknown[] } | undefined;
+		expect(result?.content).toHaveLength(2);
+		expect(result?.content[0]).toMatchObject({
+			type: "text",
+			text: IMAGE_ONLY_FALLBACK,
+		});
+		expect(result?.content[1]).toEqual(image);
+		expect(mock.emitted).toHaveLength(0);
+	});
+
+	it("unmatched command → undefined, no event", () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+		const result = mock.invoke({
+			type: "tool_result",
+			toolCallId: "tc-1",
+			toolName: "bash",
+			input: { command: "echo hello" },
+			content: [image],
 			isError: false,
 			details: undefined,
 		});
-
 		expect(result).toBeUndefined();
+		expect(mock.emitted).toHaveLength(0);
+	});
+
+	it("passthrough active + image-only → undefined, flag not consumed (next text also bypassed)", async () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+		await armPassthrough(mock);
+		const imageResult = mock.invoke({
+			type: "tool_result",
+			toolCallId: "tc-1",
+			toolName: "bash",
+			input: { command: "git log --oneline" },
+			content: [image],
+			isError: false,
+			details: undefined,
+		});
+		expect(imageResult).toBeUndefined();
+		const textResult = mock.invoke({
+			type: "tool_result",
+			toolCallId: "tc-2",
+			toolName: "bash",
+			input: { command: "git log --oneline" },
+			content: [{ type: "text", text: GIT_LOG_VERBOSE }],
+			isError: false,
+			details: undefined,
+		});
+		expect(textResult).toBeUndefined();
 		expect(mock.emitted).toHaveLength(0);
 	});
 });
@@ -320,13 +398,6 @@ describe("AC-bypass — passthrough flag bypasses filtering for the next matched
 		isError: false,
 		details: undefined,
 	});
-
-	const armPassthrough = async (mock: ReturnType<typeof makeMockApi>) => {
-		const call = (mock.api.registerCommand as ReturnType<typeof vi.fn>).mock.calls.find(
-			(args: string[]) => args[0] === "token-saver:passthrough",
-		);
-		await call?.[1].handler("", {});
-	};
 
 	it("returns undefined (no replacement) when flag is armed and command would match", async () => {
 		const mock = makeMockApi();
