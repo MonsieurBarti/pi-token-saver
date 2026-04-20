@@ -12,6 +12,8 @@ export const gitRules: FilterRule[] = [
 	{
 		name: "git-log",
 		matchCommand: /\bgit\b.*\blog\b/,
+		imageOnlyFallback:
+			"Output captured as image — git is using a pager. Retry with: git --no-pager log ...",
 		pipeline: {
 			stripAnsi: true,
 			keepLinesMatching: [/^commit /, /^Author:/, /^Date:/, /^ {4}/],

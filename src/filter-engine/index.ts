@@ -1,6 +1,7 @@
 export interface FilterRule {
 	name: string;
 	matchCommand: RegExp;
+	imageOnlyFallback?: string;
 	pipeline: FilterPipeline;
 }
 

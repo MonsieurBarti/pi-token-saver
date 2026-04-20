@@ -34,6 +34,11 @@ describe("git rules", () => {
 			const result = engine.process("git log", fixture);
 			expect(result.output).not.toMatch(/^\s*$/m);
 		});
+
+		it("has imageOnlyFallback containing '--no-pager'", () => {
+			const rule = gitRules.find((r) => r.name === "git-log");
+			expect(rule?.imageOnlyFallback).toMatch(/--no-pager/);
+		});
 	});
 
 	describe("git-status", () => {
