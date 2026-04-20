@@ -2,6 +2,7 @@ import type { ImageContent, TextContent } from "@mariozechner/pi-ai";
 import { isBashToolResult } from "@mariozechner/pi-coding-agent";
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { createRegistry } from "./command-registry/index.js";
+import { loadConfig } from "./config/index.js";
 import { DiscoverTracker, registerDiscoverCommand } from "./discover-command/index.js";
 import { FilterEngine } from "./filter-engine/index.js";
 import { registerGainCommand } from "./gain-command/index.js";
@@ -27,7 +28,8 @@ export interface FilterRecord {
 }
 
 export function registerHook(api: ExtensionAPI): void {
-	const registry = createRegistry();
+	const config = loadConfig(process.cwd());
+	const registry = createRegistry(config);
 	const engine = new FilterEngine(registry);
 	const sessionId = Date.now();
 	new SavingsTracker(api.events, sessionId);

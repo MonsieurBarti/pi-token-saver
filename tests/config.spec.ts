@@ -2,7 +2,8 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadConfig } from "../src/config/index.js";
+import { createRegistry } from "../src/command-registry/index.js";
+import { type ResolvedConfig, loadConfig } from "../src/config/index.js";
 
 function makeTmpDir() {
 	return fs.mkdtempSync(path.join(os.tmpdir(), "token-saver-test-"));
@@ -124,5 +125,51 @@ describe("loadConfig", () => {
 		const result = loadConfig(tmpDir);
 		expect(result.disabled).toContain("my-rule");
 		expect(result.rules[0]?.name).toBe("my-rule");
+	});
+});
+
+describe("createRegistry with config", () => {
+	it("user rules appear before built-in rules in registry", () => {
+		const config: ResolvedConfig = {
+			disabled: [],
+			rules: [
+				{
+					name: "user-git-log",
+					matchCommand: /\bgit\b.*\blog\b/,
+					pipeline: { maxLines: 5 },
+				},
+			],
+		};
+		const registry = createRegistry(config);
+		const rule = registry.find("git log --oneline");
+		expect(rule?.name).toBe("user-git-log");
+	});
+
+	it("disabled removes built-in rule from registry", () => {
+		const config: ResolvedConfig = { disabled: ["git-log"], rules: [] };
+		const registry = createRegistry(config);
+		const rule = registry.find("git log --oneline");
+		expect(rule).toBeUndefined();
+	});
+
+	it("disabled removes user-defined rule from registry", () => {
+		const config: ResolvedConfig = {
+			disabled: ["my-rule"],
+			rules: [
+				{
+					name: "my-rule",
+					matchCommand: /^foo/,
+					pipeline: {},
+				},
+			],
+		};
+		const registry = createRegistry(config);
+		const rule = registry.find("foo bar");
+		expect(rule).toBeUndefined();
+	});
+
+	it("zero-arg createRegistry loads all built-ins", () => {
+		const registry = createRegistry();
+		expect(registry.find("git log --oneline")).toBeDefined();
 	});
 });
