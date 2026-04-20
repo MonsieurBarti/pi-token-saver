@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "@the-forge-flow/pi-token-saver",
+      "dependencies": {
+        "@sinclair/typebox": "^0.34.0",
+      },
       "devDependencies": {
         "@biomejs/biome": "^1.9.4",
         "@commitlint/cli": "^19.8.0",
