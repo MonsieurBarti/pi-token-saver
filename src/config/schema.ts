@@ -1,6 +1,40 @@
 import { type Static, Type } from "@sinclair/typebox";
 
-const RawPipelineSchema = Type.Object({}, { additionalProperties: true });
+// Regex source strings — compiled to RegExp during coercion in config/index.ts
+const RegexEntryString = Type.String();
+
+const ReplaceEntrySchema = Type.Object(
+	{
+		pattern: RegexEntryString,
+		replacement: Type.String(),
+	},
+	{ additionalProperties: true },
+);
+
+const MatchOutputEntrySchema = Type.Object(
+	{
+		pattern: RegexEntryString,
+		message: Type.String(),
+		unless: Type.Optional(RegexEntryString),
+	},
+	{ additionalProperties: true },
+);
+
+const RawPipelineSchema = Type.Object(
+	{
+		stripAnsi: Type.Optional(Type.Boolean()),
+		replace: Type.Optional(Type.Array(ReplaceEntrySchema)),
+		matchOutput: Type.Optional(Type.Array(MatchOutputEntrySchema)),
+		stripLinesMatching: Type.Optional(Type.Array(RegexEntryString)),
+		keepLinesMatching: Type.Optional(Type.Array(RegexEntryString)),
+		truncateLinesAt: Type.Optional(Type.Number()),
+		headLines: Type.Optional(Type.Number()),
+		tailLines: Type.Optional(Type.Number()),
+		maxLines: Type.Optional(Type.Number()),
+		onEmpty: Type.Optional(Type.String()),
+	},
+	{ additionalProperties: true },
+);
 
 const RawRuleSchema = Type.Object(
 	{

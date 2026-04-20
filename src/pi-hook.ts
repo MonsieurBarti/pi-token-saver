@@ -67,7 +67,19 @@ export function registerHook(api: ExtensionAPI): void {
 			return;
 		}
 
-		const result = engine.process(command, textParts.join("\n"));
+		// Defense-in-depth: if engine.process throws despite coercion guards (e.g. a
+		// future regression slips an invalid pipeline field through), degrade to
+		// unfiltered passthrough rather than crashing the tool_result handler.
+		// We return undefined (no replacement) instead of emitting UNMATCHED because
+		// the command did match a rule — the failure is in processing, not in routing.
+		// Emitting UNMATCHED would skew savings analytics.
+		let result: ReturnType<typeof engine.process>;
+		try {
+			result = engine.process(command, textParts.join("\n"));
+		} catch (error) {
+			console.warn("[token-saver] Filter engine error — falling back to unfiltered output:", error);
+			return;
+		}
 		if (!result.matched) {
 			try {
 				api.events.emit(TOKEN_SAVER_UNMATCHED_EVENT, {

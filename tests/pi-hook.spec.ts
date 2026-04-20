@@ -353,6 +353,54 @@ describe("AC-wiring — registerHook wires /token-saver:gain command", () => {
 	});
 });
 
+describe("AC13 defense-in-depth — engine.process error does not crash the tool_result handler", () => {
+	// Producing a throwing engine.process via the public API would require
+	// either modifying filter-engine (forbidden) or injecting a broken rule
+	// through the config system. The coercion guards in config/index.ts now
+	// prevent invalid regex values from reaching the engine, so constructing
+	// a rule that throws at process-time via the normal code path is no longer
+	// straightforward without modifying the engine. We therefore verify the
+	// defense-in-depth path by monkey-patching the FilterEngine prototype
+	// after registerHook wires everything up.
+	it("returns undefined (unfiltered passthrough) when engine.process throws", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+
+		// Import FilterEngine so we can patch its prototype
+		const { FilterEngine } = await import("../src/filter-engine/index.js");
+		const original = FilterEngine.prototype.process;
+		FilterEngine.prototype.process = () => {
+			throw new Error("simulated engine failure");
+		};
+
+		try {
+			const result = mock.invoke({
+				type: "tool_result",
+				toolCallId: "tc-dib",
+				toolName: "bash",
+				input: { command: "git log --oneline" },
+				content: [{ type: "text", text: GIT_LOG_VERBOSE }],
+				isError: false,
+				details: undefined,
+			});
+
+			// Handler must not throw; result is undefined (unfiltered passthrough)
+			expect(result).toBeUndefined();
+			expect(warn).toHaveBeenCalledWith(
+				expect.stringContaining("[token-saver] Filter engine error"),
+				expect.any(Error),
+			);
+			// No savings event emitted
+			expect(mock.emitted).toHaveLength(0);
+		} finally {
+			FilterEngine.prototype.process = original;
+			warn.mockRestore();
+		}
+	});
+});
+
 import extension from "../src/index.js";
 
 describe("AC-07 — src/index.ts wires registerHook into the PI entry point", () => {

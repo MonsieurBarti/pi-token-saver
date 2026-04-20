@@ -126,6 +126,133 @@ describe("loadConfig", () => {
 		expect(result.disabled).toContain("my-rule");
 		expect(result.rules[0]?.name).toBe("my-rule");
 	});
+
+	it("rejects matchCommand longer than 256 chars — warn + rule skipped", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		const longPattern = "a".repeat(257);
+		writeConfig(tmpDir, "project", {
+			rules: [
+				{ name: "long-rule", matchCommand: longPattern, pipeline: {} },
+				{ name: "ok-rule", matchCommand: "^ok", pipeline: {} },
+			],
+		});
+		const result = loadConfig(tmpDir);
+		expect(result.rules).toHaveLength(1);
+		expect(result.rules[0]?.name).toBe("ok-rule");
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("long-rule"));
+		warn.mockRestore();
+	});
+
+	it("rejects matchCommand with nested quantifier (ReDoS pattern) — warn + rule skipped", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		writeConfig(tmpDir, "project", {
+			rules: [
+				{ name: "redos-rule", matchCommand: "^(a+)+$", pipeline: {} },
+				{ name: "safe-rule", matchCommand: "^safe", pipeline: {} },
+			],
+		});
+		const result = loadConfig(tmpDir);
+		expect(result.rules).toHaveLength(1);
+		expect(result.rules[0]?.name).toBe("safe-rule");
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("redos-rule"));
+		warn.mockRestore();
+	});
+
+	it("coerces pipeline.stripLinesMatching strings to RegExp", () => {
+		writeConfig(tmpDir, "project", {
+			rules: [
+				{
+					name: "strip-rule",
+					matchCommand: "^cmd",
+					pipeline: { stripLinesMatching: ["^debug"] },
+				},
+			],
+		});
+		const result = loadConfig(tmpDir);
+		expect(result.rules).toHaveLength(1);
+		const patterns = result.rules[0]?.pipeline.stripLinesMatching;
+		expect(patterns).toBeDefined();
+		expect(patterns?.[0]).toBeInstanceOf(RegExp);
+		expect(patterns?.[0]?.test("debug: x")).toBe(true);
+		expect(patterns?.[0]?.test("info: x")).toBe(false);
+	});
+
+	it("coerces pipeline.replace entries — pattern becomes RegExp", () => {
+		writeConfig(tmpDir, "project", {
+			rules: [
+				{
+					name: "replace-rule",
+					matchCommand: "^cmd",
+					pipeline: { replace: [{ pattern: "foo", replacement: "bar" }] },
+				},
+			],
+		});
+		const result = loadConfig(tmpDir);
+		expect(result.rules).toHaveLength(1);
+		const entries = result.rules[0]?.pipeline.replace;
+		expect(entries).toBeDefined();
+		expect(entries?.[0]?.pattern).toBeInstanceOf(RegExp);
+		expect(entries?.[0]?.replacement).toBe("bar");
+	});
+
+	it("coerces pipeline.matchOutput entries including unless", () => {
+		writeConfig(tmpDir, "project", {
+			rules: [
+				{
+					name: "match-output-rule",
+					matchCommand: "^cmd",
+					pipeline: {
+						matchOutput: [{ pattern: "^ok", message: "success", unless: "fail" }],
+					},
+				},
+			],
+		});
+		const result = loadConfig(tmpDir);
+		expect(result.rules).toHaveLength(1);
+		const entries = result.rules[0]?.pipeline.matchOutput;
+		expect(entries).toBeDefined();
+		expect(entries?.[0]?.pattern).toBeInstanceOf(RegExp);
+		expect(entries?.[0]?.unless).toBeInstanceOf(RegExp);
+		expect(entries?.[0]?.message).toBe("success");
+	});
+
+	it("skips rule when pipeline.stripLinesMatching has invalid regex — warn + other rules unaffected", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		writeConfig(tmpDir, "project", {
+			rules: [
+				{
+					name: "bad-pipeline-rule",
+					matchCommand: "^cmd",
+					pipeline: { stripLinesMatching: ["[invalid"] },
+				},
+				{ name: "good-rule", matchCommand: "^good", pipeline: {} },
+			],
+		});
+		const result = loadConfig(tmpDir);
+		expect(result.rules).toHaveLength(1);
+		expect(result.rules[0]?.name).toBe("good-rule");
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("bad-pipeline-rule"));
+		warn.mockRestore();
+	});
+
+	it("skips rule when pipeline regex triggers ReDoS heuristic in stripLinesMatching — warn + rule skipped", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		writeConfig(tmpDir, "project", {
+			rules: [
+				{
+					name: "redos-pipeline-rule",
+					matchCommand: "^cmd",
+					pipeline: { stripLinesMatching: ["^(a+)+$"] },
+				},
+				{ name: "safe-rule", matchCommand: "^safe", pipeline: {} },
+			],
+		});
+		const result = loadConfig(tmpDir);
+		expect(result.rules).toHaveLength(1);
+		expect(result.rules[0]?.name).toBe("safe-rule");
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("redos-pipeline-rule"));
+		warn.mockRestore();
+	});
 });
 
 describe("createRegistry with config", () => {
