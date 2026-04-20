@@ -1,0 +1,15 @@
+*   Trying 93.184.216.34:443...
+* Connected to example.com (93.184.216.34) port 443 (#0)
+> GET / HTTP/1.1
+> Host: example.com
+> User-Agent: curl/7.88.1
+>
+< HTTP/1.1 200 OK
+< Content-Type: text/html
+<
+<!doctype html>
+<html>
+<head><title>Example</title></head>
+<body>Hello</body>
+</html>
+* Connection #0 to host example.com left intact
