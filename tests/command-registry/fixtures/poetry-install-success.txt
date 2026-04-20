@@ -1,0 +1,5 @@
+Package operations: 3 installs, 0 updates, 0 removals
+
+  • Installing certifi (2023.11.17)
+  • Installing urllib3 (2.0.0)
+  • Installing requests (2.31.0)
