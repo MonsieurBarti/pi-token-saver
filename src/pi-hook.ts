@@ -2,6 +2,7 @@ import type { ImageContent, TextContent } from "@mariozechner/pi-ai";
 import { isBashToolResult } from "@mariozechner/pi-coding-agent";
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { createRegistry } from "./command-registry/index.js";
+import { loadConfig } from "./config/index.js";
 import { DiscoverTracker, registerDiscoverCommand } from "./discover-command/index.js";
 import { FilterEngine } from "./filter-engine/index.js";
 import { registerGainCommand } from "./gain-command/index.js";
@@ -27,7 +28,8 @@ export interface FilterRecord {
 }
 
 export function registerHook(api: ExtensionAPI): void {
-	const registry = createRegistry();
+	const config = loadConfig(process.cwd());
+	const registry = createRegistry(config);
 	const engine = new FilterEngine(registry);
 	const sessionId = Date.now();
 	new SavingsTracker(api.events, sessionId);
@@ -65,7 +67,19 @@ export function registerHook(api: ExtensionAPI): void {
 			return;
 		}
 
-		const result = engine.process(command, textParts.join("\n"));
+		// Defense-in-depth: if engine.process throws despite coercion guards (e.g. a
+		// future regression slips an invalid pipeline field through), degrade to
+		// unfiltered passthrough rather than crashing the tool_result handler.
+		// We return undefined (no replacement) instead of emitting UNMATCHED because
+		// the command did match a rule — the failure is in processing, not in routing.
+		// Emitting UNMATCHED would skew savings analytics.
+		let result: ReturnType<typeof engine.process>;
+		try {
+			result = engine.process(command, textParts.join("\n"));
+		} catch (error) {
+			console.warn("[token-saver] Filter engine error — falling back to unfiltered output:", error);
+			return;
+		}
 		if (!result.matched) {
 			try {
 				api.events.emit(TOKEN_SAVER_UNMATCHED_EVENT, {
