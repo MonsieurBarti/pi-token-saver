@@ -10,6 +10,8 @@ import { SavingsTracker } from "./savings-tracker/index.js";
 
 export const TOKEN_SAVER_FILTERED_EVENT = "token-saver:filtered";
 export const TOKEN_SAVER_UNMATCHED_EVENT = "token-saver:unmatched";
+export const IMAGE_ONLY_FALLBACK =
+	"Output captured as image — pager may be active. Retry the command with pager disabled.";
 
 export interface UnmatchedEvent {
 	command: string;
@@ -25,7 +27,8 @@ export interface FilterRecord {
 }
 
 export function registerHook(api: ExtensionAPI): void {
-	const engine = new FilterEngine(createRegistry());
+	const registry = createRegistry();
+	const engine = new FilterEngine(registry);
 	const sessionId = Date.now();
 	new SavingsTracker(api.events, sessionId);
 	registerGainCommand(api, sessionId);
@@ -47,7 +50,15 @@ export function registerHook(api: ExtensionAPI): void {
 			if (c.type === "text") textParts.push(c.text);
 			else otherContent.push(c);
 		}
-		if (textParts.length === 0) return;
+		if (textParts.length === 0) {
+			if (otherContent.length === 0) return;
+			// Don't consume flag: pager swallowed the output, user's bypass intent is still unmet.
+			if (passthroughFlag.active) return;
+			const rule = registry.find(command);
+			if (!rule) return;
+			const fallback = rule.imageOnlyFallback ?? IMAGE_ONLY_FALLBACK;
+			return { content: [{ type: "text", text: fallback }, ...otherContent] };
+		}
 
 		if (passthroughFlag.active) {
 			passthroughFlag.active = false;
