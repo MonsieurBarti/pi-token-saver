@@ -1,0 +1,11 @@
+     Running tests/foo.rs
+test foo::t1 ... ok
+test result: ok. 1 passed; 0 failed
+
+     Running tests/bar.rs
+test bar::t1 ... FAILED
+
+failures:
+    bar::t1
+
+test result: FAILED. 0 passed; 1 failed

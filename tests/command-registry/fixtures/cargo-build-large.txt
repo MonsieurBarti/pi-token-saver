@@ -1,0 +1,220 @@
+   Compiling crate-1 v0.1.0
+warning: unused variable in crate-1
+   Compiling crate-2 v0.1.0
+warning: unused variable in crate-2
+   Compiling crate-3 v0.1.0
+warning: unused variable in crate-3
+   Compiling crate-4 v0.1.0
+warning: unused variable in crate-4
+   Compiling crate-5 v0.1.0
+warning: unused variable in crate-5
+   Compiling crate-6 v0.1.0
+warning: unused variable in crate-6
+   Compiling crate-7 v0.1.0
+warning: unused variable in crate-7
+   Compiling crate-8 v0.1.0
+warning: unused variable in crate-8
+   Compiling crate-9 v0.1.0
+warning: unused variable in crate-9
+   Compiling crate-10 v0.1.0
+warning: unused variable in crate-10
+   Compiling crate-11 v0.1.0
+warning: unused variable in crate-11
+   Compiling crate-12 v0.1.0
+warning: unused variable in crate-12
+   Compiling crate-13 v0.1.0
+warning: unused variable in crate-13
+   Compiling crate-14 v0.1.0
+warning: unused variable in crate-14
+   Compiling crate-15 v0.1.0
+warning: unused variable in crate-15
+   Compiling crate-16 v0.1.0
+warning: unused variable in crate-16
+   Compiling crate-17 v0.1.0
+warning: unused variable in crate-17
+   Compiling crate-18 v0.1.0
+warning: unused variable in crate-18
+   Compiling crate-19 v0.1.0
+warning: unused variable in crate-19
+   Compiling crate-20 v0.1.0
+warning: unused variable in crate-20
+   Compiling crate-21 v0.1.0
+warning: unused variable in crate-21
+   Compiling crate-22 v0.1.0
+warning: unused variable in crate-22
+   Compiling crate-23 v0.1.0
+warning: unused variable in crate-23
+   Compiling crate-24 v0.1.0
+warning: unused variable in crate-24
+   Compiling crate-25 v0.1.0
+warning: unused variable in crate-25
+   Compiling crate-26 v0.1.0
+warning: unused variable in crate-26
+   Compiling crate-27 v0.1.0
+warning: unused variable in crate-27
+   Compiling crate-28 v0.1.0
+warning: unused variable in crate-28
+   Compiling crate-29 v0.1.0
+warning: unused variable in crate-29
+   Compiling crate-30 v0.1.0
+warning: unused variable in crate-30
+   Compiling crate-31 v0.1.0
+warning: unused variable in crate-31
+   Compiling crate-32 v0.1.0
+warning: unused variable in crate-32
+   Compiling crate-33 v0.1.0
+warning: unused variable in crate-33
+   Compiling crate-34 v0.1.0
+warning: unused variable in crate-34
+   Compiling crate-35 v0.1.0
+warning: unused variable in crate-35
+   Compiling crate-36 v0.1.0
+warning: unused variable in crate-36
+   Compiling crate-37 v0.1.0
+warning: unused variable in crate-37
+   Compiling crate-38 v0.1.0
+warning: unused variable in crate-38
+   Compiling crate-39 v0.1.0
+warning: unused variable in crate-39
+   Compiling crate-40 v0.1.0
+warning: unused variable in crate-40
+   Compiling crate-41 v0.1.0
+warning: unused variable in crate-41
+   Compiling crate-42 v0.1.0
+warning: unused variable in crate-42
+   Compiling crate-43 v0.1.0
+warning: unused variable in crate-43
+   Compiling crate-44 v0.1.0
+warning: unused variable in crate-44
+   Compiling crate-45 v0.1.0
+warning: unused variable in crate-45
+   Compiling crate-46 v0.1.0
+warning: unused variable in crate-46
+   Compiling crate-47 v0.1.0
+warning: unused variable in crate-47
+   Compiling crate-48 v0.1.0
+warning: unused variable in crate-48
+   Compiling crate-49 v0.1.0
+warning: unused variable in crate-49
+   Compiling crate-50 v0.1.0
+warning: unused variable in crate-50
+   Compiling crate-51 v0.1.0
+warning: unused variable in crate-51
+   Compiling crate-52 v0.1.0
+warning: unused variable in crate-52
+   Compiling crate-53 v0.1.0
+warning: unused variable in crate-53
+   Compiling crate-54 v0.1.0
+warning: unused variable in crate-54
+   Compiling crate-55 v0.1.0
+warning: unused variable in crate-55
+   Compiling crate-56 v0.1.0
+warning: unused variable in crate-56
+   Compiling crate-57 v0.1.0
+warning: unused variable in crate-57
+   Compiling crate-58 v0.1.0
+warning: unused variable in crate-58
+   Compiling crate-59 v0.1.0
+warning: unused variable in crate-59
+   Compiling crate-60 v0.1.0
+warning: unused variable in crate-60
+   Compiling crate-61 v0.1.0
+warning: unused variable in crate-61
+   Compiling crate-62 v0.1.0
+warning: unused variable in crate-62
+   Compiling crate-63 v0.1.0
+warning: unused variable in crate-63
+   Compiling crate-64 v0.1.0
+warning: unused variable in crate-64
+   Compiling crate-65 v0.1.0
+warning: unused variable in crate-65
+   Compiling crate-66 v0.1.0
+warning: unused variable in crate-66
+   Compiling crate-67 v0.1.0
+warning: unused variable in crate-67
+   Compiling crate-68 v0.1.0
+warning: unused variable in crate-68
+   Compiling crate-69 v0.1.0
+warning: unused variable in crate-69
+   Compiling crate-70 v0.1.0
+warning: unused variable in crate-70
+   Compiling crate-71 v0.1.0
+warning: unused variable in crate-71
+   Compiling crate-72 v0.1.0
+warning: unused variable in crate-72
+   Compiling crate-73 v0.1.0
+warning: unused variable in crate-73
+   Compiling crate-74 v0.1.0
+warning: unused variable in crate-74
+   Compiling crate-75 v0.1.0
+warning: unused variable in crate-75
+   Compiling crate-76 v0.1.0
+warning: unused variable in crate-76
+   Compiling crate-77 v0.1.0
+warning: unused variable in crate-77
+   Compiling crate-78 v0.1.0
+warning: unused variable in crate-78
+   Compiling crate-79 v0.1.0
+warning: unused variable in crate-79
+   Compiling crate-80 v0.1.0
+warning: unused variable in crate-80
+   Compiling crate-81 v0.1.0
+warning: unused variable in crate-81
+   Compiling crate-82 v0.1.0
+warning: unused variable in crate-82
+   Compiling crate-83 v0.1.0
+warning: unused variable in crate-83
+   Compiling crate-84 v0.1.0
+warning: unused variable in crate-84
+   Compiling crate-85 v0.1.0
+warning: unused variable in crate-85
+   Compiling crate-86 v0.1.0
+warning: unused variable in crate-86
+   Compiling crate-87 v0.1.0
+warning: unused variable in crate-87
+   Compiling crate-88 v0.1.0
+warning: unused variable in crate-88
+   Compiling crate-89 v0.1.0
+warning: unused variable in crate-89
+   Compiling crate-90 v0.1.0
+warning: unused variable in crate-90
+   Compiling crate-91 v0.1.0
+warning: unused variable in crate-91
+   Compiling crate-92 v0.1.0
+warning: unused variable in crate-92
+   Compiling crate-93 v0.1.0
+warning: unused variable in crate-93
+   Compiling crate-94 v0.1.0
+warning: unused variable in crate-94
+   Compiling crate-95 v0.1.0
+warning: unused variable in crate-95
+   Compiling crate-96 v0.1.0
+warning: unused variable in crate-96
+   Compiling crate-97 v0.1.0
+warning: unused variable in crate-97
+   Compiling crate-98 v0.1.0
+warning: unused variable in crate-98
+   Compiling crate-99 v0.1.0
+warning: unused variable in crate-99
+   Compiling crate-100 v0.1.0
+warning: unused variable in crate-100
+   Compiling crate-101 v0.1.0
+warning: unused variable in crate-101
+   Compiling crate-102 v0.1.0
+warning: unused variable in crate-102
+   Compiling crate-103 v0.1.0
+warning: unused variable in crate-103
+   Compiling crate-104 v0.1.0
+warning: unused variable in crate-104
+   Compiling crate-105 v0.1.0
+warning: unused variable in crate-105
+   Compiling crate-106 v0.1.0
+warning: unused variable in crate-106
+   Compiling crate-107 v0.1.0
+warning: unused variable in crate-107
+   Compiling crate-108 v0.1.0
+warning: unused variable in crate-108
+   Compiling crate-109 v0.1.0
+warning: unused variable in crate-109
+   Compiling crate-110 v0.1.0
+warning: unused variable in crate-110
