@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.3](https://github.com/MonsieurBarti/pi-token-saver/compare/pi-token-saver-v0.1.2...pi-token-saver-v0.1.3) (2026-04-21)
+
+
+### Features
+
+* **M02-S01:** image-only fallback for pager-captured output ([#12](https://github.com/MonsieurBarti/pi-token-saver/issues/12)) ([98d40e3](https://github.com/MonsieurBarti/pi-token-saver/commit/98d40e34eb3b5985b17f48480b0d0c1e343def70))
+* **M02-S02:** config system — global + project settings.json with user rules ([#13](https://github.com/MonsieurBarti/pi-token-saver/issues/13)) ([05101ea](https://github.com/MonsieurBarti/pi-token-saver/commit/05101ea33c7ed4688a132eb39a2a29ef4bfeb821))
+* **M02-S03:** tier 1 filter rules — docker, curl/http, grep/rg ([#14](https://github.com/MonsieurBarti/pi-token-saver/issues/14)) ([9d3e3e2](https://github.com/MonsieurBarti/pi-token-saver/commit/9d3e3e262b99b6b92883e1c7f33dcc92599d6abf))
+* **M02-S04:** tier 2 filter rules — rust, go, python, make/cmake ([#15](https://github.com/MonsieurBarti/pi-token-saver/issues/15)) ([b047085](https://github.com/MonsieurBarti/pi-token-saver/commit/b047085fb496bfb48cd950833bb3f1e15b82bf7c))
+
 ## [0.1.2](https://github.com/MonsieurBarti/pi-token-saver/compare/pi-token-saver-v0.1.1...pi-token-saver-v0.1.2) (2026-04-19)
 
 
