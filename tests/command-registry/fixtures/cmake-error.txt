@@ -1,0 +1,5 @@
+-- Configuring
+CMake Error at CMakeLists.txt:5 (add_executable):
+  add_executable called with incorrect number of arguments
+CMake Warning (dev) at CMakeLists.txt:7:
+  deprecated policy

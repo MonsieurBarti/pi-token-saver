@@ -1,0 +1,5 @@
+--- FAIL: TestFoo (0.00s)
+    main_test.go:8: expected 1, got 2
+FAIL
+exit status 1
+FAIL	example.com/foo	0.003s
