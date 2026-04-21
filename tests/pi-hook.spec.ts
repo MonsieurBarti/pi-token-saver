@@ -531,3 +531,24 @@ describe("AC13 — user config rule filters hook output end-to-end", () => {
 		expect(mock.emitted[0]?.event).toBe(TOKEN_SAVER_FILTERED_EVENT);
 	});
 });
+
+describe("AC-ruleName — FilterRecord emitted with ruleName from matched rule", () => {
+	it("includes ruleName on the emitted FilterRecord", () => {
+		const mock = makeMockApi();
+		registerHook(mock.api as unknown as ExtensionAPI);
+
+		mock.invoke({
+			type: "tool_result",
+			toolCallId: "tc-1",
+			toolName: "bash",
+			input: { command: "git log --oneline" },
+			content: [{ type: "text", text: GIT_LOG_VERBOSE }],
+			isError: false,
+			details: undefined,
+		});
+
+		const record = mock.emitted[0]?.data as FilterRecord;
+		expect(typeof record.ruleName).toBe("string");
+		expect(record.ruleName.length).toBeGreaterThan(0);
+	});
+});

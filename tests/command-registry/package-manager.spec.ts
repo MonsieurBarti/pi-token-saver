@@ -11,33 +11,194 @@ describe("package-manager rules", () => {
 	const engine = new FilterEngine(registry);
 
 	describe("pm-install", () => {
-		const fixture = readFileSync(join(fixturesDir, "npm-install.txt"), "utf-8");
+		const npm = readFileSync(join(fixturesDir, "npm-install.txt"), "utf-8");
+		const pnpm = readFileSync(join(fixturesDir, "pnpm-install.txt"), "utf-8");
+		const yarn = readFileSync(join(fixturesDir, "yarn-install.txt"), "utf-8");
+		const bun = readFileSync(join(fixturesDir, "bun-install.txt"), "utf-8");
 
-		it("AC-01: find() returns rule", () => {
-			expect(registry.find("npm install")).toBeDefined();
-		});
-
-		it("AC-05: all four package managers resolve to pm-install", () => {
+		it("matches install/add/i for all four managers", () => {
 			expect(registry.find("npm install")?.name).toBe("pm-install");
-			expect(registry.find("yarn install")?.name).toBe("pm-install");
+			expect(registry.find("npm i")?.name).toBe("pm-install");
+			expect(registry.find("npm add foo")?.name).toBe("pm-install");
 			expect(registry.find("pnpm install")?.name).toBe("pm-install");
+			expect(registry.find("pnpm i")?.name).toBe("pm-install");
+			expect(registry.find("pnpm add foo")?.name).toBe("pm-install");
+			expect(registry.find("yarn install")?.name).toBe("pm-install");
+			expect(registry.find("yarn add foo")?.name).toBe("pm-install");
 			expect(registry.find("bun install")?.name).toBe("pm-install");
+			expect(registry.find("bun i")?.name).toBe("pm-install");
+			expect(registry.find("bun add foo")?.name).toBe("pm-install");
+			expect(registry.find("  npm install")?.name).toBe("pm-install");
 		});
 
-		it("AC-02: compresses ≥10%", () => {
-			const result = engine.process("npm install", fixture);
+		it("strips npm summary-noise lines", () => {
+			const result = engine.process("npm install", npm);
 			expect(result.matched).toBe(true);
-			expect(result.bytesAfter).toBeLessThanOrEqual(0.9 * result.bytesBefore);
+			expect(result.output).not.toMatch(/^added \d+ packages/m);
+			expect(result.output).not.toMatch(/^\d+ packages are looking for funding/m);
+			expect(result.output).not.toMatch(/Run `npm audit`/);
+			expect(result.output).not.toMatch(/^To address/m);
 		});
 
-		it("AC-03: error lines preserved", () => {
-			const result = engine.process("npm install", fixture);
-			expect(result.output).toContain("npm error");
+		it("strips pnpm progress + summary-noise lines", () => {
+			const result = engine.process("pnpm install", pnpm);
+			expect(result.output).not.toMatch(/^Progress: resolved /m);
+			expect(result.output).not.toMatch(/^\+{2,}$/m);
+			expect(result.output).not.toMatch(/^Packages: \+/m);
+			expect(result.output).not.toMatch(/^dependencies:$/m);
+			expect(result.output).not.toMatch(/^Done in \d+ms using pnpm/m);
 		});
 
-		it("drops spinner/progress lines", () => {
-			const result = engine.process("npm install", fixture);
-			expect(result.output).not.toContain("Installing packages: 1/");
+		it("strips yarn progress + summary-noise lines", () => {
+			const result = engine.process("yarn install", yarn);
+			expect(result.output).not.toMatch(/^\[\d\/\d\] /m);
+			expect(result.output).not.toMatch(/^yarn install v/m);
+			expect(result.output).not.toMatch(/^info No lockfile found\.$/m);
+			expect(result.output).not.toMatch(/^success Saved lockfile\.$/m);
+			expect(result.output).not.toMatch(/^Done in \d+(\.\d+)?s\.$/m);
+		});
+
+		it("strips bun summary-noise lines", () => {
+			const result = engine.process("bun install", bun);
+			expect(result.output).not.toMatch(/^bun install v/m);
+			expect(result.output).not.toMatch(/^Saved lockfile$/m);
+			expect(result.output).not.toMatch(/^\+ \S+@/m);
+			expect(result.output).not.toMatch(/^\d+ packages installed \[/m);
+		});
+
+		it("preserves error/warn lines", () => {
+			const synthetic = [
+				"npm error ENOENT /some/path",
+				"npm warn deprecated foo@1.2.3",
+				"added 5 packages",
+				"up to date in 1s",
+			].join("\n");
+			const result = engine.process("npm install", synthetic);
+			expect(result.output).toContain("npm error ENOENT");
+			expect(result.output).toContain("npm warn deprecated");
+		});
+
+		it("caps output at 100 lines", () => {
+			const huge = Array.from({ length: 500 }, (_, i) => `custom line ${i}`).join("\n");
+			const result = engine.process("npm install", huge);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBeLessThanOrEqual(101);
+		});
+	});
+
+	describe("pm-ls", () => {
+		const npm = readFileSync(join(fixturesDir, "npm-ls.txt"), "utf-8");
+		const pnpm = readFileSync(join(fixturesDir, "pnpm-ls.txt"), "utf-8");
+		const yarn = readFileSync(join(fixturesDir, "yarn-ls.txt"), "utf-8");
+		const bun = readFileSync(join(fixturesDir, "bun-ls.txt"), "utf-8");
+
+		it("matches ls/list for all four managers", () => {
+			expect(registry.find("npm ls")?.name).toBe("pm-ls");
+			expect(registry.find("npm list")?.name).toBe("pm-ls");
+			expect(registry.find("pnpm ls")?.name).toBe("pm-ls");
+			expect(registry.find("pnpm list")?.name).toBe("pm-ls");
+			expect(registry.find("yarn ls")?.name).toBe("pm-ls");
+			expect(registry.find("yarn list")?.name).toBe("pm-ls");
+			expect(registry.find("bun ls")?.name).toBe("pm-ls");
+			expect(registry.find("bun list")?.name).toBe("pm-ls");
+		});
+
+		it("does NOT match install-family commands", () => {
+			expect(registry.find("npm install")?.name).not.toBe("pm-ls");
+			expect(registry.find("pnpm add foo")?.name).not.toBe("pm-ls");
+		});
+
+		it("pass-through for input ≤ 100 lines (bun-ls, 76 lines)", () => {
+			const result = engine.process("bun ls", bun);
+			expect(result.matched).toBe(true);
+			const expected = bun.replace(/\r\n|\r/g, "\n").split("\n").length;
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBe(expected);
+			expect(result.output).not.toContain("lines omitted");
+		});
+
+		it("head-20 + tail-80 + single marker for input > 100 lines (npm-ls, 135 lines)", () => {
+			const result = engine.process("npm ls", npm);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBe(101);
+			expect(outLines[20]).toMatch(/lines omitted/);
+			expect(outLines.filter((l) => l.includes("lines omitted")).length).toBe(1);
+			expect(outLines.filter((l) => l.includes("lines truncated")).length).toBe(0);
+		});
+
+		it("head-20 + tail-80 + single marker for pnpm-ls (256 lines)", () => {
+			const result = engine.process("pnpm ls", pnpm);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBe(101);
+			expect(outLines.filter((l) => l.includes("lines truncated")).length).toBe(0);
+		});
+
+		it("head-20 + tail-80 + single marker for yarn-ls (207 lines)", () => {
+			const result = engine.process("yarn list", yarn);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBe(101);
+			expect(outLines.filter((l) => l.includes("lines truncated")).length).toBe(0);
+		});
+	});
+
+	describe("pm-audit", () => {
+		const npm = readFileSync(join(fixturesDir, "npm-audit.txt"), "utf-8");
+		const pnpm = readFileSync(join(fixturesDir, "pnpm-audit.txt"), "utf-8");
+		const yarn = readFileSync(join(fixturesDir, "yarn-audit.txt"), "utf-8");
+		const bun = readFileSync(join(fixturesDir, "bun-audit.txt"), "utf-8");
+
+		it("matches audit for all four managers", () => {
+			expect(registry.find("npm audit")?.name).toBe("pm-audit");
+			expect(registry.find("pnpm audit")?.name).toBe("pm-audit");
+			expect(registry.find("yarn audit")?.name).toBe("pm-audit");
+			expect(registry.find("bun audit")?.name).toBe("pm-audit");
+		});
+
+		it("does NOT match install-family commands", () => {
+			expect(registry.find("npm install")?.name).not.toBe("pm-audit");
+		});
+
+		it("npm: strips advisory-detail lines, preserves severity + summary", () => {
+			const result = engine.process("npm audit", npm);
+			expect(result.matched).toBe(true);
+			expect(result.output).not.toMatch(/^Depends on vulnerable versions of /m);
+			expect(result.output).not.toMatch(/^fix available via /m);
+			expect(result.output).not.toMatch(/^Will install \S+@/m);
+			expect(result.output).not.toMatch(/^node_modules\//m);
+			expect(result.output).toMatch(/^Severity: /m);
+			expect(result.output).toMatch(/\d+ vulnerabilities/);
+		});
+
+		it("pnpm: strips box-drawing borders + labeled detail rows, preserves summary", () => {
+			const result = engine.process("pnpm audit", pnpm);
+			expect(result.output).not.toMatch(/^[\s│├└┌┐┘┼┤┬┴─╭╮╯╰]+$/m);
+			expect(result.output).not.toMatch(/^│\s+Vulnerable versions\s+│/m);
+			expect(result.output).not.toMatch(/^│\s+Patched versions\s+│/m);
+			expect(result.output).not.toMatch(/^│\s+Paths?\s+│/m);
+			expect(result.output).not.toMatch(/^│\s+More info\s+│/m);
+			expect(result.output).toMatch(/\d+ vulnerabilities found/);
+			expect(result.output).toMatch(/^Severity: /m);
+		});
+
+		it("yarn: strips box-drawing after stripAnsi, preserves summary", () => {
+			const result = engine.process("yarn audit", yarn);
+			expect(result.output).not.toMatch(/^[\s│├└┌┐┘┼┤┬┴─╭╮╯╰]+$/m);
+			expect(result.output).not.toMatch(/^│\s+Dependency of\s+│/m);
+			expect(result.output).toMatch(/\d+ vulnerabilities found/);
+		});
+
+		it("bun: strips indented path + severity-detail + header, preserves package+summary", () => {
+			const result = engine.process("bun audit", bun);
+			expect(result.output).not.toMatch(/^\s{2}\S.*\s›\s/m);
+			expect(result.output).not.toMatch(/^\s{2}(low|moderate|high|critical):\s/m);
+			expect(result.output).not.toMatch(/^bun audit v/m);
+			expect(result.output).toMatch(/\d+ vulnerabilities/);
+		});
+
+		it("caps output at 100 lines", () => {
+			const result = engine.process("yarn audit", yarn);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBeLessThanOrEqual(101);
 		});
 	});
 
@@ -69,6 +230,69 @@ describe("package-manager rules", () => {
 			const result = engine.process("turbo run build", fixture);
 			expect(result.output).not.toContain("✓ Generating static pages");
 			expect(result.output).not.toContain("✓ Compiled successfully");
+		});
+	});
+
+	describe("negative matches (run/test/exec/dlx should NOT match any pm rule)", () => {
+		it("`npm run <script>` does not match pm-*", () => {
+			const rule = registry.find("npm run build");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+
+		it("`npm test` does not match pm-*", () => {
+			const rule = registry.find("npm test");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+
+		it("`pnpm exec …` does not match pm-*", () => {
+			const rule = registry.find("pnpm exec foo");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+
+		it("`yarn dlx …` does not match pm-*", () => {
+			const rule = registry.find("yarn dlx foo");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+
+		it("`bun run <script>` does not match pm-*", () => {
+			const rule = registry.find("bun run dev");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+	});
+
+	describe("disabled-config integration (via createRegistry)", () => {
+		it("disabling 'pm-install' removes it but leaves pm-ls + pm-audit", async () => {
+			const { createRegistry } = await import("../../src/command-registry/index.js");
+			const reg = createRegistry({ disabled: ["pm-install"], rules: [] });
+			expect(reg.find("npm install")).toBeUndefined();
+			expect(reg.find("npm ls")?.name).toBe("pm-ls");
+			expect(reg.find("npm audit")?.name).toBe("pm-audit");
+		});
+
+		it("disabling 'pm-ls' removes it but leaves pm-install + pm-audit", async () => {
+			const { createRegistry } = await import("../../src/command-registry/index.js");
+			const reg = createRegistry({ disabled: ["pm-ls"], rules: [] });
+			expect(reg.find("npm install")?.name).toBe("pm-install");
+			expect(reg.find("npm ls")).toBeUndefined();
+			expect(reg.find("npm audit")?.name).toBe("pm-audit");
+		});
+
+		it("disabling 'pm-audit' removes it but leaves pm-install + pm-ls", async () => {
+			const { createRegistry } = await import("../../src/command-registry/index.js");
+			const reg = createRegistry({ disabled: ["pm-audit"], rules: [] });
+			expect(reg.find("npm install")?.name).toBe("pm-install");
+			expect(reg.find("npm ls")?.name).toBe("pm-ls");
+			expect(reg.find("npm audit")).toBeUndefined();
 		});
 	});
 });

@@ -8,6 +8,8 @@ import { FilterEngine } from "./filter-engine/index.js";
 import { registerGainCommand } from "./gain-command/index.js";
 import { createPassthroughFlag, registerPassthroughCommand } from "./passthrough-mode/index.js";
 import { SavingsTracker } from "./savings-tracker/index.js";
+import { registerStatsCommand } from "./stats-command/index.js";
+import { StatsTracker } from "./stats/index.js";
 
 export const TOKEN_SAVER_FILTERED_EVENT = "token-saver:filtered";
 export const TOKEN_SAVER_UNMATCHED_EVENT = "token-saver:unmatched";
@@ -21,6 +23,7 @@ export interface UnmatchedEvent {
 }
 
 export interface FilterRecord {
+	ruleName: string;
 	command: string;
 	bytesBefore: number;
 	bytesAfter: number;
@@ -33,7 +36,9 @@ export function registerHook(api: ExtensionAPI): void {
 	const engine = new FilterEngine(registry);
 	const sessionId = Date.now();
 	new SavingsTracker(api.events, sessionId);
+	new StatsTracker(api.events);
 	registerGainCommand(api, sessionId);
+	registerStatsCommand(api);
 	new DiscoverTracker(api.events, sessionId);
 	registerDiscoverCommand(api, sessionId);
 	const passthroughFlag = createPassthroughFlag();
@@ -93,6 +98,7 @@ export function registerHook(api: ExtensionAPI): void {
 
 		try {
 			api.events.emit(TOKEN_SAVER_FILTERED_EVENT, {
+				ruleName: result.ruleName,
 				command,
 				bytesBefore: result.bytesBefore,
 				bytesAfter: result.bytesAfter,

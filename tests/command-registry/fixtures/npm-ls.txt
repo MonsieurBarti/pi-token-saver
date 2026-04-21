@@ -1,0 +1,135 @@
+pm-fixture-test@0.0.0 /private/var/folders/4z/j6hx4v114jlcp_cj14fl9q9w0000gn/T/tmp.8iiqOf2LpH
+├─┬ chalk@4.1.2
+│ ├─┬ ansi-styles@4.3.0
+│ │ └─┬ color-convert@2.0.1
+│ │   └── color-name@1.1.4
+│ └─┬ supports-color@7.2.0
+│   └── has-flag@4.0.0
+├─┬ express@4.19.2
+│ ├─┬ accepts@1.3.8
+│ │ ├─┬ mime-types@2.1.35
+│ │ │ └── mime-db@1.52.0
+│ │ └── negotiator@0.6.3
+│ ├── array-flatten@1.1.1
+│ ├─┬ body-parser@1.20.2
+│ │ ├── bytes@3.1.2
+│ │ ├── content-type@1.0.5 deduped
+│ │ ├── debug@2.6.9 deduped
+│ │ ├── depd@2.0.0 deduped
+│ │ ├── destroy@1.2.0
+│ │ ├── http-errors@2.0.0 deduped
+│ │ ├─┬ iconv-lite@0.4.24
+│ │ │ └── safer-buffer@2.1.2
+│ │ ├── on-finished@2.4.1 deduped
+│ │ ├── qs@6.11.0 deduped
+│ │ ├─┬ raw-body@2.5.2
+│ │ │ ├── bytes@3.1.2 deduped
+│ │ │ ├── http-errors@2.0.0 deduped
+│ │ │ ├── iconv-lite@0.4.24 deduped
+│ │ │ └── unpipe@1.0.0 deduped
+│ │ ├── type-is@1.6.18 deduped
+│ │ └── unpipe@1.0.0
+│ ├─┬ content-disposition@0.5.4
+│ │ └── safe-buffer@5.2.1 deduped
+│ ├── content-type@1.0.5
+│ ├── cookie-signature@1.0.6
+│ ├── cookie@0.6.0
+│ ├─┬ debug@2.6.9
+│ │ └── ms@2.0.0
+│ ├── depd@2.0.0
+│ ├── encodeurl@1.0.2
+│ ├── escape-html@1.0.3
+│ ├── etag@1.8.1
+│ ├─┬ finalhandler@1.2.0
+│ │ ├── debug@2.6.9 deduped
+│ │ ├── encodeurl@1.0.2 deduped
+│ │ ├── escape-html@1.0.3 deduped
+│ │ ├── on-finished@2.4.1 deduped
+│ │ ├── parseurl@1.3.3 deduped
+│ │ ├── statuses@2.0.1 deduped
+│ │ └── unpipe@1.0.0 deduped
+│ ├── fresh@0.5.2
+│ ├─┬ http-errors@2.0.0
+│ │ ├── depd@2.0.0 deduped
+│ │ ├── inherits@2.0.4
+│ │ ├── setprototypeof@1.2.0 deduped
+│ │ ├── statuses@2.0.1 deduped
+│ │ └── toidentifier@1.0.1
+│ ├── merge-descriptors@1.0.1
+│ ├── methods@1.1.2
+│ ├─┬ on-finished@2.4.1
+│ │ └── ee-first@1.1.1
+│ ├── parseurl@1.3.3
+│ ├── path-to-regexp@0.1.7
+│ ├─┬ proxy-addr@2.0.7
+│ │ ├── forwarded@0.2.0
+│ │ └── ipaddr.js@1.9.1
+│ ├─┬ qs@6.11.0
+│ │ └─┬ side-channel@1.1.0
+│ │   ├── es-errors@1.3.0
+│ │   ├── object-inspect@1.13.4
+│ │   ├─┬ side-channel-list@1.0.1
+│ │   │ ├── es-errors@1.3.0 deduped
+│ │   │ └── object-inspect@1.13.4 deduped
+│ │   ├─┬ side-channel-map@1.0.1
+│ │   │ ├─┬ call-bound@1.0.4
+│ │   │ │ ├─┬ call-bind-apply-helpers@1.0.2
+│ │   │ │ │ ├── es-errors@1.3.0 deduped
+│ │   │ │ │ └── function-bind@1.1.2 deduped
+│ │   │ │ └── get-intrinsic@1.3.0 deduped
+│ │   │ ├── es-errors@1.3.0 deduped
+│ │   │ ├─┬ get-intrinsic@1.3.0
+│ │   │ │ ├── call-bind-apply-helpers@1.0.2 deduped
+│ │   │ │ ├── es-define-property@1.0.1
+│ │   │ │ ├── es-errors@1.3.0 deduped
+│ │   │ │ ├─┬ es-object-atoms@1.1.1
+│ │   │ │ │ └── es-errors@1.3.0 deduped
+│ │   │ │ ├── function-bind@1.1.2
+│ │   │ │ ├─┬ get-proto@1.0.1
+│ │   │ │ │ ├─┬ dunder-proto@1.0.1
+│ │   │ │ │ │ ├── call-bind-apply-helpers@1.0.2 deduped
+│ │   │ │ │ │ ├── es-errors@1.3.0 deduped
+│ │   │ │ │ │ └── gopd@1.2.0 deduped
+│ │   │ │ │ └── es-object-atoms@1.1.1 deduped
+│ │   │ │ ├── gopd@1.2.0
+│ │   │ │ ├── has-symbols@1.1.0
+│ │   │ │ ├─┬ hasown@2.0.3
+│ │   │ │ │ └── function-bind@1.1.2 deduped
+│ │   │ │ └── math-intrinsics@1.1.0
+│ │   │ └── object-inspect@1.13.4 deduped
+│ │   └─┬ side-channel-weakmap@1.0.2
+│ │     ├── call-bound@1.0.4 deduped
+│ │     ├── es-errors@1.3.0 deduped
+│ │     ├── get-intrinsic@1.3.0 deduped
+│ │     ├── object-inspect@1.13.4 deduped
+│ │     └── side-channel-map@1.0.1 deduped
+│ ├── range-parser@1.2.1
+│ ├── safe-buffer@5.2.1
+│ ├─┬ send@0.18.0
+│ │ ├── debug@2.6.9 deduped
+│ │ ├── depd@2.0.0 deduped
+│ │ ├── destroy@1.2.0 deduped
+│ │ ├── encodeurl@1.0.2 deduped
+│ │ ├── escape-html@1.0.3 deduped
+│ │ ├── etag@1.8.1 deduped
+│ │ ├── fresh@0.5.2 deduped
+│ │ ├── http-errors@2.0.0 deduped
+│ │ ├── mime@1.6.0
+│ │ ├── ms@2.1.3
+│ │ ├── on-finished@2.4.1 deduped
+│ │ ├── range-parser@1.2.1 deduped
+│ │ └── statuses@2.0.1 deduped
+│ ├─┬ serve-static@1.15.0
+│ │ ├── encodeurl@1.0.2 deduped
+│ │ ├── escape-html@1.0.3 deduped
+│ │ ├── parseurl@1.3.3 deduped
+│ │ └── send@0.18.0 deduped
+│ ├── setprototypeof@1.2.0
+│ ├── statuses@2.0.1
+│ ├─┬ type-is@1.6.18
+│ │ ├── media-typer@0.3.0
+│ │ └── mime-types@2.1.35 deduped
+│ ├── utils-merge@1.0.1
+│ └── vary@1.1.2
+└── lodash@4.17.21
+

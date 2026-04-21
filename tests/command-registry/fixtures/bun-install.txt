@@ -1,0 +1,8 @@
+bun install v1.3.11 (af24e281)
+Saved lockfile
+
++ chalk@4.1.2
++ express@4.19.2
++ lodash@4.17.21
+
+75 packages installed [43.00ms]
