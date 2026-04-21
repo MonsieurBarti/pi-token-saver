@@ -232,4 +232,67 @@ describe("package-manager rules", () => {
 			expect(result.output).not.toContain("✓ Compiled successfully");
 		});
 	});
+
+	describe("negative matches (run/test/exec/dlx should NOT match any pm rule)", () => {
+		it("`npm run <script>` does not match pm-*", () => {
+			const rule = registry.find("npm run build");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+
+		it("`npm test` does not match pm-*", () => {
+			const rule = registry.find("npm test");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+
+		it("`pnpm exec …` does not match pm-*", () => {
+			const rule = registry.find("pnpm exec foo");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+
+		it("`yarn dlx …` does not match pm-*", () => {
+			const rule = registry.find("yarn dlx foo");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+
+		it("`bun run <script>` does not match pm-*", () => {
+			const rule = registry.find("bun run dev");
+			expect(rule?.name).not.toBe("pm-install");
+			expect(rule?.name).not.toBe("pm-ls");
+			expect(rule?.name).not.toBe("pm-audit");
+		});
+	});
+
+	describe("disabled-config integration (via createRegistry)", () => {
+		it("disabling 'pm-install' removes it but leaves pm-ls + pm-audit", async () => {
+			const { createRegistry } = await import("../../src/command-registry/index.js");
+			const reg = createRegistry({ disabled: ["pm-install"], rules: [] });
+			expect(reg.find("npm install")).toBeUndefined();
+			expect(reg.find("npm ls")?.name).toBe("pm-ls");
+			expect(reg.find("npm audit")?.name).toBe("pm-audit");
+		});
+
+		it("disabling 'pm-ls' removes it but leaves pm-install + pm-audit", async () => {
+			const { createRegistry } = await import("../../src/command-registry/index.js");
+			const reg = createRegistry({ disabled: ["pm-ls"], rules: [] });
+			expect(reg.find("npm install")?.name).toBe("pm-install");
+			expect(reg.find("npm ls")).toBeUndefined();
+			expect(reg.find("npm audit")?.name).toBe("pm-audit");
+		});
+
+		it("disabling 'pm-audit' removes it but leaves pm-install + pm-ls", async () => {
+			const { createRegistry } = await import("../../src/command-registry/index.js");
+			const reg = createRegistry({ disabled: ["pm-audit"], rules: [] });
+			expect(reg.find("npm install")?.name).toBe("pm-install");
+			expect(reg.find("npm ls")?.name).toBe("pm-ls");
+			expect(reg.find("npm audit")).toBeUndefined();
+		});
+	});
 });
