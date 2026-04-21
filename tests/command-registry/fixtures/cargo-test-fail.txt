@@ -1,0 +1,15 @@
+running 2 tests
+test foo::a ... ok
+test foo::b ... FAILED
+
+failures:
+
+---- foo::b stdout ----
+thread 'foo::b' panicked at 'assertion `left == right` failed'
+  left: 1
+ right: 2
+
+failures:
+    foo::b
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored

@@ -1,0 +1,10 @@
+   Compiling foo v0.1.0
+error[E0425]: cannot find value `bar` in this scope
+  --> src/main.rs:3:5
+   |
+ 3 |     bar();
+   |     ^^^ not found in this scope
+   |
+   = help: consider importing it
+
+error: could not compile `foo` due to previous error

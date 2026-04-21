@@ -1,0 +1,3 @@
+# example.com/foo
+./main.go:5:2: undefined: Bar
+./main.go:10:6: cannot use "str" (untyped string constant) as int value

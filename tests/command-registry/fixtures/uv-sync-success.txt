@@ -1,0 +1,6 @@
+Resolved 3 packages in 50ms
+Prepared 3 packages in 120ms
+Installed 3 packages in 10ms
+ + requests==2.31.0
+ + urllib3==2.0.0
+ + certifi==2023.11.17

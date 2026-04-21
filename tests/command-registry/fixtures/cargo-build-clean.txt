@@ -1,0 +1,10 @@
+   Compiling foo v0.1.0 (/path/to/foo)
+warning: unused variable: `x`
+  --> src/main.rs:3:9
+   |
+ 3 |     let x = 1;
+   |         ^ help: prefix with underscore: `_x`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+    Finished dev [unoptimized + debuginfo] target(s) in 1.23s

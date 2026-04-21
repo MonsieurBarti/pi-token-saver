@@ -1,0 +1,5 @@
+Collecting requests
+  Downloading requests-2.31.0-py3-none-any.whl (62 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.6/62.6 kB 2.1 MB/s
+Installing collected packages: requests
+Successfully installed requests-2.31.0

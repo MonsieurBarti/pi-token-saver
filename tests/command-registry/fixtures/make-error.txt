@@ -1,0 +1,6 @@
+gcc -Wall -o foo foo.c
+foo.c:5:2: error: 'bar' undeclared (first use in this function)
+    5 |  bar();
+      |  ^~~
+foo.c:6:3: warning: unused variable 'x' [-Wunused-variable]
+make: *** [Makefile:3: foo] Error 1

@@ -21,9 +21,25 @@ describe("createRegistry()", () => {
 		["tsc", "tsc --noEmit"],
 		["ls", "ls -la"],
 		["find", 'find . -name "*.ts"'],
+		["docker-ps", "docker ps -a"],
+		["docker-images", "docker images"],
+		["docker-logs", "docker logs my-container"],
+		["docker-build", "docker build -t app ."],
+		["curl", "curl -v https://api.example.com"],
+		["http", "http GET https://api.example.com"],
+		["grep", "grep -r foo ."],
+		["rg", "rg foo"],
+		["cargo-build", "cargo build --release"],
+		["cargo-test", "cargo test"],
+		["go-build", "go build ./..."],
+		["go-test", "go test ./..."],
+		["python-install", "pip install requests"],
+		["python-install", "uv sync"],
+		["python-install", "poetry install"],
+		["build-tools", "make -j4"],
 	];
 
-	it("AC-01: find() returns a rule for all 12 representative commands", () => {
+	it("AC-01: find() returns a rule for all 30 representative commands", () => {
 		for (const [name, command] of representativeCommands) {
 			const rule = registry.find(command);
 			expect(rule, `expected rule for "${command}"`).toBeDefined();
@@ -41,5 +57,22 @@ describe("createRegistry()", () => {
 	it("smoke: engine processes git status without throwing", () => {
 		const result = engine.process("git status", 'On branch main\n  (use "git add")\n');
 		expect(result.matched).toBe(true);
+	});
+
+	it("disabled list filters out a rule by name", () => {
+		const r = createRegistry({ disabled: ["docker-logs"], rules: [] });
+		expect(r.find("docker logs foo")).toBeUndefined();
+		expect(r.find("docker ps")).toBeDefined();
+	});
+
+	it("disabled list works for S04 rules (python-install, build-tools, cargo)", () => {
+		const r = createRegistry({
+			disabled: ["cargo-build", "python-install", "build-tools"],
+			rules: [],
+		});
+		expect(r.find("cargo build")).toBeUndefined();
+		expect(r.find("pip install foo")).toBeUndefined();
+		expect(r.find("make")).toBeUndefined();
+		expect(r.find("cargo test")).toBeDefined();
 	});
 });
