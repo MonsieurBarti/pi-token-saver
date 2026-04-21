@@ -19,7 +19,7 @@ export interface FilterPipeline {
 }
 
 export type FilterResult =
-	| { matched: true; output: string; bytesBefore: number; bytesAfter: number }
+	| { matched: true; ruleName: string; output: string; bytesBefore: number; bytesAfter: number }
 	| { matched: false; output: string; bytesBefore: number; bytesAfter: number };
 
 export const OMITTED_LINES_MARKER = (count: number) => `… ${count} lines omitted …`;
@@ -86,6 +86,7 @@ export class FilterEngine {
 						const output = entry.message;
 						return {
 							matched: true,
+							ruleName: rule.name,
 							output,
 							bytesBefore,
 							bytesAfter: Buffer.byteLength(output, "utf8"),
@@ -135,10 +136,22 @@ export class FilterEngine {
 		// Stage 8: onEmpty
 		if (pipeline.onEmpty !== undefined && lines.join("").length === 0) {
 			const output = pipeline.onEmpty;
-			return { matched: true, output, bytesBefore, bytesAfter: Buffer.byteLength(output, "utf8") };
+			return {
+				matched: true,
+				ruleName: rule.name,
+				output,
+				bytesBefore,
+				bytesAfter: Buffer.byteLength(output, "utf8"),
+			};
 		}
 
 		const output = lines.join("\n");
-		return { matched: true, output, bytesBefore, bytesAfter: Buffer.byteLength(output, "utf8") };
+		return {
+			matched: true,
+			ruleName: rule.name,
+			output,
+			bytesBefore,
+			bytesAfter: Buffer.byteLength(output, "utf8"),
+		};
 	}
 }

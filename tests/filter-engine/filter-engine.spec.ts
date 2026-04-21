@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	FilterEngine,
 	FilterRegistry,
+	type FilterRule,
 	OMITTED_LINES_MARKER,
 	TRUNCATED_LINES_MARKER,
 } from "../../src/filter-engine/index.js";
@@ -293,6 +294,40 @@ describe("Edge cases — onEmpty, stage 6/7 boundaries, replace semantics", () =
 		const engine = new FilterEngine(registry);
 		const result = engine.process("cmd", "abc\ndef");
 		expect(result.output).toBe("…\n…");
+	});
+});
+
+describe("AC-ruleName — matched result carries ruleName from all 3 return paths", () => {
+	it("includes ruleName on main pipeline exit", () => {
+		const rule: FilterRule = { name: "main-exit", matchCommand: /^echo/, pipeline: {} };
+		const engine = new FilterEngine(new FilterRegistry([rule]));
+		const result = engine.process("echo hi", "hi");
+		expect(result.matched).toBe(true);
+		if (result.matched) expect(result.ruleName).toBe("main-exit");
+	});
+
+	it("includes ruleName on matchOutput early return", () => {
+		const rule: FilterRule = {
+			name: "match-out",
+			matchCommand: /^echo/,
+			pipeline: { matchOutput: [{ pattern: /./, message: "replaced" }] },
+		};
+		const engine = new FilterEngine(new FilterRegistry([rule]));
+		const result = engine.process("echo hi", "hi");
+		expect(result.matched).toBe(true);
+		if (result.matched) expect(result.ruleName).toBe("match-out");
+	});
+
+	it("includes ruleName on onEmpty early return", () => {
+		const rule: FilterRule = {
+			name: "empty",
+			matchCommand: /^echo/,
+			pipeline: { onEmpty: "empty!", stripLinesMatching: [/.*/] },
+		};
+		const engine = new FilterEngine(new FilterRegistry([rule]));
+		const result = engine.process("echo hi", "hi");
+		expect(result.matched).toBe(true);
+		if (result.matched) expect(result.ruleName).toBe("empty");
 	});
 });
 
