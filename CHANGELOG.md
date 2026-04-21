@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/MonsieurBarti/pi-token-saver/compare/pi-token-saver-v0.1.3...pi-token-saver-v0.1.4) (2026-04-21)
+
+
+### Features
+
+* **M03:** observability + package manager coverage ([#21](https://github.com/MonsieurBarti/pi-token-saver/issues/21)) ([409a9fa](https://github.com/MonsieurBarti/pi-token-saver/commit/409a9fad258d5356ed1f0860798aeb138623c6d5))
+
 ## [0.1.3](https://github.com/MonsieurBarti/pi-token-saver/compare/pi-token-saver-v0.1.2...pi-token-saver-v0.1.3) (2026-04-21)
 
 
