@@ -13,7 +13,6 @@ describe("createRegistry()", () => {
 		["git-show", "git show HEAD"],
 		["git-blame", "git blame src/index.ts"],
 		["pm-install", "npm install"],
-		["pm-run", "npm run build"],
 		["turbo-run", "turbo run build"],
 		["vitest", "vitest run"],
 		["jest", "jest --runInBand"],

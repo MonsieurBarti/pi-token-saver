@@ -3,28 +3,38 @@ import type { FilterRule } from "../filter-engine/index.js";
 export const packageManagerRules: FilterRule[] = [
 	{
 		name: "pm-install",
-		matchCommand: /\b(npm|yarn|pnpm|bun)\b.*\binstall\b/,
+		matchCommand: /^\s*(npm|pnpm|yarn|bun)\s+(install|add|i)\b/,
 		pipeline: {
 			stripAnsi: true,
-			keepLinesMatching: [
-				/error/i,
-				/warn/i,
-				/added \d+/,
-				/removed \d+/,
-				/packages? installed/,
-				/Done in/,
-				/Resolving \d+/,
+			stripLinesMatching: [
+				// npm
+				/^added \d+ packages/,
+				/^\d+ packages are looking for funding/,
+				/^\s*run `npm fund`/,
+				/^Run `npm audit`/,
+				/^To address/,
+				/^\s*npm audit fix/,
+				/^up to date/,
+				// pnpm
+				/^Progress: resolved \d+/,
+				/^\+{2,}$/,
+				/^Packages: \+\d+/,
+				/^dependencies:$/,
+				/^\+ \S+ /,
+				/^Done in \d+ms using pnpm/,
+				// yarn
+				/^\[\d\/\d\] /,
+				/^yarn install v/,
+				/^info No lockfile found\.$/,
+				/^success Saved lockfile\.$/,
+				/^Done in \d+(\.\d+)?s\.$/,
+				// bun
+				/^bun install v/,
+				/^Saved lockfile$/,
+				/^\+ \S+@/,
+				/^\d+ packages installed \[/,
 			],
-			onEmpty: "Install complete.",
-		},
-	},
-	{
-		name: "pm-run",
-		matchCommand: /\b(npm|yarn|pnpm|bun)\b.*\brun\b/,
-		pipeline: {
-			stripAnsi: true,
-			keepLinesMatching: [/error/i, /warn/i, /^\s*at /, /failed/i],
-			onEmpty: "Script completed.",
+			maxLines: 100,
 		},
 	},
 	{

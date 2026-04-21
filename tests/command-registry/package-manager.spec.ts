@@ -11,33 +11,78 @@ describe("package-manager rules", () => {
 	const engine = new FilterEngine(registry);
 
 	describe("pm-install", () => {
-		const fixture = readFileSync(join(fixturesDir, "npm-install.txt"), "utf-8");
+		const npm = readFileSync(join(fixturesDir, "npm-install.txt"), "utf-8");
+		const pnpm = readFileSync(join(fixturesDir, "pnpm-install.txt"), "utf-8");
+		const yarn = readFileSync(join(fixturesDir, "yarn-install.txt"), "utf-8");
+		const bun = readFileSync(join(fixturesDir, "bun-install.txt"), "utf-8");
 
-		it("AC-01: find() returns rule", () => {
-			expect(registry.find("npm install")).toBeDefined();
-		});
-
-		it("AC-05: all four package managers resolve to pm-install", () => {
+		it("matches install/add/i for all four managers", () => {
 			expect(registry.find("npm install")?.name).toBe("pm-install");
-			expect(registry.find("yarn install")?.name).toBe("pm-install");
+			expect(registry.find("npm i")?.name).toBe("pm-install");
+			expect(registry.find("npm add foo")?.name).toBe("pm-install");
 			expect(registry.find("pnpm install")?.name).toBe("pm-install");
+			expect(registry.find("pnpm i")?.name).toBe("pm-install");
+			expect(registry.find("pnpm add foo")?.name).toBe("pm-install");
+			expect(registry.find("yarn install")?.name).toBe("pm-install");
+			expect(registry.find("yarn add foo")?.name).toBe("pm-install");
 			expect(registry.find("bun install")?.name).toBe("pm-install");
+			expect(registry.find("bun i")?.name).toBe("pm-install");
+			expect(registry.find("bun add foo")?.name).toBe("pm-install");
+			expect(registry.find("  npm install")?.name).toBe("pm-install");
 		});
 
-		it("AC-02: compresses ≥10%", () => {
-			const result = engine.process("npm install", fixture);
+		it("strips npm summary-noise lines", () => {
+			const result = engine.process("npm install", npm);
 			expect(result.matched).toBe(true);
-			expect(result.bytesAfter).toBeLessThanOrEqual(0.9 * result.bytesBefore);
+			expect(result.output).not.toMatch(/^added \d+ packages/m);
+			expect(result.output).not.toMatch(/^\d+ packages are looking for funding/m);
+			expect(result.output).not.toMatch(/Run `npm audit`/);
+			expect(result.output).not.toMatch(/^To address/m);
 		});
 
-		it("AC-03: error lines preserved", () => {
-			const result = engine.process("npm install", fixture);
-			expect(result.output).toContain("npm error");
+		it("strips pnpm progress + summary-noise lines", () => {
+			const result = engine.process("pnpm install", pnpm);
+			expect(result.output).not.toMatch(/^Progress: resolved /m);
+			expect(result.output).not.toMatch(/^\+{2,}$/m);
+			expect(result.output).not.toMatch(/^Packages: \+/m);
+			expect(result.output).not.toMatch(/^dependencies:$/m);
+			expect(result.output).not.toMatch(/^Done in \d+ms using pnpm/m);
 		});
 
-		it("drops spinner/progress lines", () => {
-			const result = engine.process("npm install", fixture);
-			expect(result.output).not.toContain("Installing packages: 1/");
+		it("strips yarn progress + summary-noise lines", () => {
+			const result = engine.process("yarn install", yarn);
+			expect(result.output).not.toMatch(/^\[\d\/\d\] /m);
+			expect(result.output).not.toMatch(/^yarn install v/m);
+			expect(result.output).not.toMatch(/^info No lockfile found\.$/m);
+			expect(result.output).not.toMatch(/^success Saved lockfile\.$/m);
+			expect(result.output).not.toMatch(/^Done in \d+(\.\d+)?s\.$/m);
+		});
+
+		it("strips bun summary-noise lines", () => {
+			const result = engine.process("bun install", bun);
+			expect(result.output).not.toMatch(/^bun install v/m);
+			expect(result.output).not.toMatch(/^Saved lockfile$/m);
+			expect(result.output).not.toMatch(/^\+ \S+@/m);
+			expect(result.output).not.toMatch(/^\d+ packages installed \[/m);
+		});
+
+		it("preserves error/warn lines", () => {
+			const synthetic = [
+				"npm error ENOENT /some/path",
+				"npm warn deprecated foo@1.2.3",
+				"added 5 packages",
+				"up to date in 1s",
+			].join("\n");
+			const result = engine.process("npm install", synthetic);
+			expect(result.output).toContain("npm error ENOENT");
+			expect(result.output).toContain("npm warn deprecated");
+		});
+
+		it("caps output at 100 lines", () => {
+			const huge = Array.from({ length: 500 }, (_, i) => `custom line ${i}`).join("\n");
+			const result = engine.process("npm install", huge);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBeLessThanOrEqual(101);
 		});
 	});
 

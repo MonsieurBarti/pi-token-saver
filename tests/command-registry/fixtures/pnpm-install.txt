@@ -1,0 +1,11 @@
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +75
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 75, reused 75, downloaded 0, added 75, done
+
+dependencies:
++ chalk 4.1.2 (5.6.2 is available)
++ express 4.19.2 (5.2.1 is available)
++ lodash 4.17.21 (4.18.1 is available)
+
+Done in 983ms using pnpm v10.33.0
