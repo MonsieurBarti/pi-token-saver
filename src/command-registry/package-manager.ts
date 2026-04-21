@@ -38,6 +38,15 @@ export const packageManagerRules: FilterRule[] = [
 		},
 	},
 	{
+		name: "pm-ls",
+		matchCommand: /^\s*(npm|pnpm|yarn|bun)\s+(ls|list)\b/,
+		pipeline: {
+			stripAnsi: true,
+			headLines: 20,
+			tailLines: 80,
+		},
+	},
+	{
 		name: "turbo-run",
 		matchCommand: /\bturbo\b.*\brun\b/,
 		pipeline: {

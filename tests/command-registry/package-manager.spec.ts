@@ -86,6 +86,61 @@ describe("package-manager rules", () => {
 		});
 	});
 
+	describe("pm-ls", () => {
+		const npm = readFileSync(join(fixturesDir, "npm-ls.txt"), "utf-8");
+		const pnpm = readFileSync(join(fixturesDir, "pnpm-ls.txt"), "utf-8");
+		const yarn = readFileSync(join(fixturesDir, "yarn-ls.txt"), "utf-8");
+		const bun = readFileSync(join(fixturesDir, "bun-ls.txt"), "utf-8");
+
+		it("matches ls/list for all four managers", () => {
+			expect(registry.find("npm ls")?.name).toBe("pm-ls");
+			expect(registry.find("npm list")?.name).toBe("pm-ls");
+			expect(registry.find("pnpm ls")?.name).toBe("pm-ls");
+			expect(registry.find("pnpm list")?.name).toBe("pm-ls");
+			expect(registry.find("yarn ls")?.name).toBe("pm-ls");
+			expect(registry.find("yarn list")?.name).toBe("pm-ls");
+			expect(registry.find("bun ls")?.name).toBe("pm-ls");
+			expect(registry.find("bun list")?.name).toBe("pm-ls");
+		});
+
+		it("does NOT match install-family commands", () => {
+			expect(registry.find("npm install")?.name).not.toBe("pm-ls");
+			expect(registry.find("pnpm add foo")?.name).not.toBe("pm-ls");
+		});
+
+		it("pass-through for input ≤ 100 lines (bun-ls, 76 lines)", () => {
+			const result = engine.process("bun ls", bun);
+			expect(result.matched).toBe(true);
+			const expected = bun.replace(/\r\n|\r/g, "\n").split("\n").length;
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBe(expected);
+			expect(result.output).not.toContain("lines omitted");
+		});
+
+		it("head-20 + tail-80 + single marker for input > 100 lines (npm-ls, 135 lines)", () => {
+			const result = engine.process("npm ls", npm);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBe(101);
+			expect(outLines[20]).toMatch(/lines omitted/);
+			expect(outLines.filter((l) => l.includes("lines omitted")).length).toBe(1);
+			expect(outLines.filter((l) => l.includes("lines truncated")).length).toBe(0);
+		});
+
+		it("head-20 + tail-80 + single marker for pnpm-ls (256 lines)", () => {
+			const result = engine.process("pnpm ls", pnpm);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBe(101);
+			expect(outLines.filter((l) => l.includes("lines truncated")).length).toBe(0);
+		});
+
+		it("head-20 + tail-80 + single marker for yarn-ls (207 lines)", () => {
+			const result = engine.process("yarn list", yarn);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBe(101);
+			expect(outLines.filter((l) => l.includes("lines truncated")).length).toBe(0);
+		});
+	});
+
 	describe("turbo-run (AC-06)", () => {
 		const fixture = readFileSync(join(fixturesDir, "turbo-run.txt"), "utf-8");
 
