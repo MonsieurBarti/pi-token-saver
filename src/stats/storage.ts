@@ -1,6 +1,6 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 export interface RuleStats {
 	fired: number;
@@ -76,4 +76,15 @@ export function mergeRecord(
 				lastSeen: timestamp,
 			};
 	return { rules: { ...state.rules, [ruleName]: next } };
+}
+
+export function writeStats(state: StatsState, statsPath: string = DEFAULT_STATS_PATH): void {
+	try {
+		mkdirSync(dirname(statsPath), { recursive: true });
+		const tmp = `${statsPath}.tmp`;
+		writeFileSync(tmp, JSON.stringify(state), "utf8");
+		renameSync(tmp, statsPath);
+	} catch (err) {
+		warnOnce(`stats write failed: ${String(err)}`);
+	}
 }

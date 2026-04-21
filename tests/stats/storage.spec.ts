@@ -91,3 +91,48 @@ describe("mergeRecord", () => {
 		expect(state.rules.r?.fired).toBe(2);
 	});
 });
+
+import { existsSync } from "node:fs";
+import { writeStats } from "../../src/stats/storage.js";
+
+describe("writeStats", () => {
+	it("persists state and round-trips via readStats", () => {
+		const state: StatsState = {
+			rules: {
+				r: {
+					fired: 1,
+					bytesIn: 10,
+					bytesOut: 5,
+					matchNoReduction: 0,
+					firstSeen: "x",
+					lastSeen: "x",
+				},
+			},
+		};
+		writeStats(state, tmpPath);
+		expect(readStats(tmpPath)).toEqual(state);
+	});
+
+	it("creates parent directory", () => {
+		const nested = join(tmpdir(), `stats-nested-${Date.now()}-${Math.random()}`, "stats.json");
+		writeStats({ rules: {} }, nested);
+		expect(readStats(nested)).toEqual({ rules: {} });
+		rmSync(dirname(nested), { recursive: true });
+	});
+
+	it("ignores pre-existing .tmp from prior crash — final file is canonical", () => {
+		mkdirSync(dirname(tmpPath), { recursive: true });
+		writeFileSync(`${tmpPath}.tmp`, "garbage-from-prior-crash");
+		writeStats({ rules: {} }, tmpPath);
+		expect(readStats(tmpPath)).toEqual({ rules: {} });
+		expect(existsSync(`${tmpPath}.tmp`)).toBe(false);
+	});
+
+	it("warns once on unwritable dir and does not throw", () => {
+		const spy = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+		expect(() => writeStats({ rules: {} }, "/no-permission/stats.json")).not.toThrow();
+		writeStats({ rules: {} }, "/no-permission/stats.json");
+		expect(spy).toHaveBeenCalledOnce();
+		spy.mockRestore();
+	});
+});
