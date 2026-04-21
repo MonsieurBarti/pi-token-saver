@@ -304,3 +304,100 @@ describe("AC7 — no-reduction column shows raw matchNoReduction count", () => {
 		expect(rRow).toMatch(/\|\s*r\s*\|\s*10\s*\|\s*500 B\s*\|\s*3\s*\|\s*50%\s*\|/);
 	});
 });
+
+describe("AC9 — --since filters rules by firstSeen >= since", () => {
+	it("includes only rules introduced at/after the since date", async () => {
+		writeState({
+			rules: {
+				"old-rule": {
+					fired: 1,
+					bytesIn: 1_000,
+					bytesOut: 100,
+					matchNoReduction: 0,
+					firstSeen: "2026-03-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+				"new-rule": {
+					fired: 1,
+					bytesIn: 1_000,
+					bytesOut: 200,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-15T00:00:00.000Z",
+					lastSeen: "2026-04-15T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke("--since 2026-04-01");
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content).toContain("| new-rule |");
+		expect(content).not.toContain("| old-rule |");
+	});
+
+	it("accepts full ISO 8601 timestamps", async () => {
+		writeState({
+			rules: {
+				"new-rule": {
+					fired: 1,
+					bytesIn: 1_000,
+					bytesOut: 200,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-15T12:00:00.000Z",
+					lastSeen: "2026-04-15T12:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke("--since 2026-04-15T00:00:00.000Z");
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content).toContain("| new-rule |");
+	});
+});
+
+describe("AC10 — invalid --since value emits error message listing accepted formats", () => {
+	it("emits an error message without throwing", async () => {
+		writeState({
+			rules: {
+				r: {
+					fired: 1,
+					bytesIn: 100,
+					bytesOut: 50,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await expect(invoke("--since not-a-date")).resolves.toBeUndefined();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content.toLowerCase()).toContain("invalid");
+		expect(content).toContain("YYYY-MM-DD");
+		expect(content).toContain("ISO 8601");
+	});
+});
+
+describe("AC11 — --since with all rules filtered out", () => {
+	it("emits 'No rules match the --since filter.' (distinct from empty-stats)", async () => {
+		writeState({
+			rules: {
+				"old-rule": {
+					fired: 1,
+					bytesIn: 1_000,
+					bytesOut: 100,
+					matchNoReduction: 0,
+					firstSeen: "2026-03-01T00:00:00.000Z",
+					lastSeen: "2026-03-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke("--since 2026-12-01");
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content).toBe("No rules match the --since filter.");
+	});
+});
