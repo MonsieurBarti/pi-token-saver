@@ -10,6 +10,7 @@ import { _resetWarnedForTest, readRecords } from "../../src/savings-tracker/stor
 let tmpLog: string;
 
 const makeFilterRecord = (command: string): FilterRecord => ({
+	ruleName: "test-rule",
 	command,
 	bytesBefore: 500,
 	bytesAfter: 100,

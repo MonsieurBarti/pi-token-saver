@@ -21,6 +21,7 @@ export interface UnmatchedEvent {
 }
 
 export interface FilterRecord {
+	ruleName: string;
 	command: string;
 	bytesBefore: number;
 	bytesAfter: number;
@@ -93,6 +94,7 @@ export function registerHook(api: ExtensionAPI): void {
 
 		try {
 			api.events.emit(TOKEN_SAVER_FILTERED_EVENT, {
+				ruleName: result.ruleName,
 				command,
 				bytesBefore: result.bytesBefore,
 				bytesAfter: result.bytesAfter,
