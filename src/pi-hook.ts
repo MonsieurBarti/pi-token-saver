@@ -8,6 +8,7 @@ import { FilterEngine } from "./filter-engine/index.js";
 import { registerGainCommand } from "./gain-command/index.js";
 import { createPassthroughFlag, registerPassthroughCommand } from "./passthrough-mode/index.js";
 import { SavingsTracker } from "./savings-tracker/index.js";
+import { registerStatsCommand } from "./stats-command/index.js";
 import { StatsTracker } from "./stats/index.js";
 
 export const TOKEN_SAVER_FILTERED_EVENT = "token-saver:filtered";
@@ -37,6 +38,7 @@ export function registerHook(api: ExtensionAPI): void {
 	new SavingsTracker(api.events, sessionId);
 	new StatsTracker(api.events);
 	registerGainCommand(api, sessionId);
+	registerStatsCommand(api);
 	new DiscoverTracker(api.events, sessionId);
 	registerDiscoverCommand(api, sessionId);
 	const passthroughFlag = createPassthroughFlag();
