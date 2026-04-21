@@ -87,3 +87,220 @@ describe("AC8 — empty / missing stats.json", () => {
 		);
 	});
 });
+
+describe("AC12 — test seam: handler reads from the injected statsPath", () => {
+	it("renders rules from the injected path (proves seam wired end-to-end)", async () => {
+		writeState({
+			rules: {
+				"test-rule": {
+					fired: 1,
+					bytesIn: 1_000,
+					bytesOut: 200,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content).toContain("| test-rule |");
+	});
+});
+
+describe("AC3,AC4 — populated stats: header + sort by bytesSaved desc, tiebreak by name asc", () => {
+	it("renders the required markdown header", async () => {
+		writeState({
+			rules: {
+				"git-status": {
+					fired: 5,
+					bytesIn: 10_000,
+					bytesOut: 1_000,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-10T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content).toContain("| Rule | Fired | Bytes saved | No-reduction | Reduction % |");
+	});
+
+	it("sorts by bytesSaved desc, ties broken by rule name asc", async () => {
+		writeState({
+			rules: {
+				"b-rule": {
+					fired: 1,
+					bytesIn: 500,
+					bytesOut: 400,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+				"a-rule": {
+					fired: 1,
+					bytesIn: 500,
+					bytesOut: 400,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+				"big-saver": {
+					fired: 1,
+					bytesIn: 10_000,
+					bytesOut: 1_000,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		const bigIdx = content.indexOf("| big-saver |");
+		const aIdx = content.indexOf("| a-rule |");
+		const bIdx = content.indexOf("| b-rule |");
+		expect(bigIdx).toBeGreaterThan(-1);
+		expect(aIdx).toBeGreaterThan(-1);
+		expect(bIdx).toBeGreaterThan(-1);
+		expect(bigIdx).toBeLessThan(aIdx);
+		expect(aIdx).toBeLessThan(bIdx);
+	});
+});
+
+describe("AC5 — bytes saved formatted with en-US thousands separators; negative shown as-is", () => {
+	it("formats large bytesSaved with commas", async () => {
+		writeState({
+			rules: {
+				r: {
+					fired: 1,
+					bytesIn: 12_345,
+					bytesOut: 45,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content).toContain("12,300 B");
+	});
+
+	it("shows negative bytesSaved honestly (rule expanded output)", async () => {
+		writeState({
+			rules: {
+				r: {
+					fired: 1,
+					bytesIn: 100,
+					bytesOut: 112,
+					matchNoReduction: 1,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content).toContain("-12 B");
+	});
+});
+
+describe("AC6 — reduction %: integer percent, em-dash for bytesIn=0, honest negatives", () => {
+	it("renders integer percent for positive reduction", async () => {
+		writeState({
+			rules: {
+				r: {
+					fired: 1,
+					bytesIn: 1_000,
+					bytesOut: 130,
+					matchNoReduction: 0,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content).toContain("87%");
+	});
+
+	it("renders em-dash when bytesIn = 0 (ratio guard)", async () => {
+		writeState({
+			rules: {
+				r: {
+					fired: 1,
+					bytesIn: 0,
+					bytesOut: 0,
+					matchNoReduction: 1,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		const rRow = content.split("\n").find((l) => l.startsWith("| r |"));
+		expect(rRow).toBeDefined();
+		expect(rRow).toContain("—");
+	});
+
+	it("renders negative percent when output expanded", async () => {
+		writeState({
+			rules: {
+				r: {
+					fired: 1,
+					bytesIn: 100,
+					bytesOut: 112,
+					matchNoReduction: 1,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		expect(content).toContain("-12%");
+	});
+});
+
+describe("AC7 — no-reduction column shows raw matchNoReduction count", () => {
+	it("prints matchNoReduction as-is", async () => {
+		writeState({
+			rules: {
+				r: {
+					fired: 10,
+					bytesIn: 1_000,
+					bytesOut: 500,
+					matchNoReduction: 3,
+					firstSeen: "2026-04-01T00:00:00.000Z",
+					lastSeen: "2026-04-01T00:00:00.000Z",
+				},
+			},
+		});
+		const { api, invoke, sentMessages } = makeMockApi();
+		registerStatsCommand(api as never, { statsPath: tmpPath });
+		await invoke();
+		const content = (sentMessages[0]?.payload as { content: string }).content;
+		const rRow = content.split("\n").find((l) => l.startsWith("| r |"));
+		expect(rRow).toBeDefined();
+		expect(rRow).toMatch(/\|\s*r\s*\|\s*10\s*\|\s*500 B\s*\|\s*3\s*\|\s*50%\s*\|/);
+	});
+});
