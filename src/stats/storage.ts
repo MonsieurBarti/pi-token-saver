@@ -48,3 +48,32 @@ export function readStats(statsPath: string = DEFAULT_STATS_PATH): StatsState {
 		return { rules: {} };
 	}
 }
+
+export function mergeRecord(
+	state: StatsState,
+	ruleName: string,
+	bytesIn: number,
+	bytesOut: number,
+	timestamp: string,
+): StatsState {
+	const prev = state.rules[ruleName];
+	const noReduction = bytesOut >= bytesIn ? 1 : 0;
+	const next: RuleStats = prev
+		? {
+				fired: prev.fired + 1,
+				bytesIn: prev.bytesIn + bytesIn,
+				bytesOut: prev.bytesOut + bytesOut,
+				matchNoReduction: prev.matchNoReduction + noReduction,
+				firstSeen: prev.firstSeen,
+				lastSeen: timestamp,
+			}
+		: {
+				fired: 1,
+				bytesIn,
+				bytesOut,
+				matchNoReduction: noReduction,
+				firstSeen: timestamp,
+				lastSeen: timestamp,
+			};
+	return { rules: { ...state.rules, [ruleName]: next } };
+}
