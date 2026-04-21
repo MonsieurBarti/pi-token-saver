@@ -47,6 +47,30 @@ export const packageManagerRules: FilterRule[] = [
 		},
 	},
 	{
+		name: "pm-audit",
+		matchCommand: /^\s*(npm|pnpm|yarn|bun)\s+audit\b/,
+		pipeline: {
+			stripAnsi: true,
+			stripLinesMatching: [
+				// pnpm + yarn: pure box-drawing border rows
+				/^[\s│├└┌┐┘┼┤┬┴─╭╮╯╰]+$/,
+				// pnpm + yarn: labeled detail rows
+				/^│\s+(Package|Vulnerable versions|Patched (in|versions)|Paths?|More info|Dependency of)\s*│/,
+				// npm: advisory-detail lines
+				/^Depends on vulnerable versions of /,
+				/^fix available via /,
+				/^Will install \S+@/,
+				/^node_modules\//,
+				// bun: indented path + severity detail + header
+				/^\s{2}\S.*\s›\s/,
+				/^\s{2}(low|moderate|high|critical):\s/,
+				/^bun audit v/,
+				/^\s{2}bun update(\s|$)/,
+			],
+			maxLines: 100,
+		},
+	},
+	{
 		name: "turbo-run",
 		matchCommand: /\bturbo\b.*\brun\b/,
 		pipeline: {

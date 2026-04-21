@@ -141,6 +141,67 @@ describe("package-manager rules", () => {
 		});
 	});
 
+	describe("pm-audit", () => {
+		const npm = readFileSync(join(fixturesDir, "npm-audit.txt"), "utf-8");
+		const pnpm = readFileSync(join(fixturesDir, "pnpm-audit.txt"), "utf-8");
+		const yarn = readFileSync(join(fixturesDir, "yarn-audit.txt"), "utf-8");
+		const bun = readFileSync(join(fixturesDir, "bun-audit.txt"), "utf-8");
+
+		it("matches audit for all four managers", () => {
+			expect(registry.find("npm audit")?.name).toBe("pm-audit");
+			expect(registry.find("pnpm audit")?.name).toBe("pm-audit");
+			expect(registry.find("yarn audit")?.name).toBe("pm-audit");
+			expect(registry.find("bun audit")?.name).toBe("pm-audit");
+		});
+
+		it("does NOT match install-family commands", () => {
+			expect(registry.find("npm install")?.name).not.toBe("pm-audit");
+		});
+
+		it("npm: strips advisory-detail lines, preserves severity + summary", () => {
+			const result = engine.process("npm audit", npm);
+			expect(result.matched).toBe(true);
+			expect(result.output).not.toMatch(/^Depends on vulnerable versions of /m);
+			expect(result.output).not.toMatch(/^fix available via /m);
+			expect(result.output).not.toMatch(/^Will install \S+@/m);
+			expect(result.output).not.toMatch(/^node_modules\//m);
+			expect(result.output).toMatch(/^Severity: /m);
+			expect(result.output).toMatch(/\d+ vulnerabilities/);
+		});
+
+		it("pnpm: strips box-drawing borders + labeled detail rows, preserves summary", () => {
+			const result = engine.process("pnpm audit", pnpm);
+			expect(result.output).not.toMatch(/^[\s│├└┌┐┘┼┤┬┴─╭╮╯╰]+$/m);
+			expect(result.output).not.toMatch(/^│\s+Vulnerable versions\s+│/m);
+			expect(result.output).not.toMatch(/^│\s+Patched versions\s+│/m);
+			expect(result.output).not.toMatch(/^│\s+Paths?\s+│/m);
+			expect(result.output).not.toMatch(/^│\s+More info\s+│/m);
+			expect(result.output).toMatch(/\d+ vulnerabilities found/);
+			expect(result.output).toMatch(/^Severity: /m);
+		});
+
+		it("yarn: strips box-drawing after stripAnsi, preserves summary", () => {
+			const result = engine.process("yarn audit", yarn);
+			expect(result.output).not.toMatch(/^[\s│├└┌┐┘┼┤┬┴─╭╮╯╰]+$/m);
+			expect(result.output).not.toMatch(/^│\s+Dependency of\s+│/m);
+			expect(result.output).toMatch(/\d+ vulnerabilities found/);
+		});
+
+		it("bun: strips indented path + severity-detail + header, preserves package+summary", () => {
+			const result = engine.process("bun audit", bun);
+			expect(result.output).not.toMatch(/^\s{2}\S.*\s›\s/m);
+			expect(result.output).not.toMatch(/^\s{2}(low|moderate|high|critical):\s/m);
+			expect(result.output).not.toMatch(/^bun audit v/m);
+			expect(result.output).toMatch(/\d+ vulnerabilities/);
+		});
+
+		it("caps output at 100 lines", () => {
+			const result = engine.process("yarn audit", yarn);
+			const outLines = result.output.split("\n");
+			expect(outLines.length).toBeLessThanOrEqual(101);
+		});
+	});
+
 	describe("turbo-run (AC-06)", () => {
 		const fixture = readFileSync(join(fixturesDir, "turbo-run.txt"), "utf-8");
 
